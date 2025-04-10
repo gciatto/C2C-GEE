@@ -17,13 +17,13 @@ public class Segmentator {
     private Segmentator() {
     }
 
-    private static class Segment {
-        int start;
-        int finish;
+    private record Segment(int start, int finish) {
+        public Segment changeFinish(int newFinish) {
+            return new Segment(start, newFinish);
+        }
 
-        public Segment(int start, int finish) {
-            this.start = start;
-            this.finish = finish;
+        public Segment copyFinishFrom(Segment other) {
+            return changeFinish(other.finish);
         }
     }
 
@@ -48,7 +48,7 @@ public class Segmentator {
             // merge the adjacent segments with the smaller cost
             Segment segment = segments.get(index);
             Segment segment2 = segments.get(index + 1);
-            segment.finish = segment2.finish;
+            segments.set(index, segment.copyFinishFrom(segment2));
             // update segments
             segments.remove(index + 1);
             mergeCost.remove(index);
