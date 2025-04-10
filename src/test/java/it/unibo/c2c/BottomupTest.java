@@ -53,14 +53,14 @@ public class BottomupTest {
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
             Changes c = actual.get(j);
-            assertEquals(c.date, expected.getColumn("year").getDouble(j), 1e-9);
-            assertEquals(c.value, expected.getColumn("index").getDouble(j), 1e-9);
-            assertEquals(c.duration, expected.getColumn("duration").getDouble(j), 1e-9);
-            assertEquals(c.magnitude, expected.getColumn("magnitude").getDouble(j), 1e-9);
-            assertEquals(c.postMagnitude, expected.getColumn("postMagnitude").getDouble(j), 1e-9);
-            assertEquals(c.postDuration, expected.getColumn("postDuration").getDouble(j), 1e-9);
-            assertEquals(c.postRate, expected.getColumn("postRate").getDouble(j), 1e-9);
-            assertEquals(c.rate, expected.getColumn("rate").getDouble(j), 1e-9);
+            assertEquals(c.date(), expected.getColumn("year").getDouble(j), 1e-9);
+            assertEquals(c.value(), expected.getColumn("index").getDouble(j), 1e-9);
+            assertEquals(c.duration(), expected.getColumn("duration").getDouble(j), 1e-9);
+            assertEquals(c.magnitude(), expected.getColumn("magnitude").getDouble(j), 1e-9);
+            assertEquals(c.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j), 1e-9);
+            assertEquals(c.postDuration(), expected.getColumn("postDuration").getDouble(j), 1e-9);
+            assertEquals(c.postRate(), expected.getColumn("postRate").getDouble(j), 1e-9);
+            assertEquals(c.rate(), expected.getColumn("rate").getDouble(j), 1e-9);
         }
     }
 }
