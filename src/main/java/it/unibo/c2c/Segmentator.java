@@ -90,7 +90,7 @@ public class Segmentator {
         return segmented;
     }
 
-    public static double calculateError(DoubleList dates, DoubleList values, int start, int finish) {
+    private static double calculateError(DoubleList dates, DoubleList values, int start, int finish) {
         // linearInterpolation
         double y1 = values.getDouble(start);
         double y2 = values.getDouble(finish);
@@ -107,7 +107,7 @@ public class Segmentator {
         return Math.sqrt(error / (finish - start));
     }
 
-    public static Changes changeMetricsCalculator(DoubleList dates, DoubleList values, int preIndex, int currIndex, int postIndex) {
+    private static Changes changeMetricsCalculator(DoubleList dates, DoubleList values, int preIndex, int currIndex, int postIndex) {
         double currDate = dates.getDouble(currIndex);
         double currValue = values.getDouble(currIndex);
         Changes change;
@@ -129,7 +129,7 @@ public class Segmentator {
         return change;
     }
 
-    public static double lerp(double y1, double y2, double x) {
+    private static double lerp(double y1, double y2, double x) {
         return y1 * (1 - x) + y2 * x;
     }
 
