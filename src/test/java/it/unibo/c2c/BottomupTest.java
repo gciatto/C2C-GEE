@@ -22,8 +22,8 @@ public class BottomupTest {
         Csv inputs = Csv.vertical(getClass().getResourceAsStream(SAMPLES_FILE));
         DoubleList dates =
                 DoubleArrayList.wrap(
-                        inputs.headers.stream().skip(1).mapToDouble(Double::parseDouble).toArray());
-        int numberOfInputs = inputs.values.getFirst().size();
+                        inputs.headers().stream().skip(1).mapToDouble(Double::parseDouble).toArray());
+        int numberOfInputs = inputs.values().getFirst().size();
         // Read expected results file and split by plot ID.
         List<Csv> expected =
                 Csv.vertical(getClass().getResourceAsStream(EXPECTED_FILE)).groupByColumn("id");
@@ -50,7 +50,7 @@ public class BottomupTest {
      * Verify that the changes match the expected values.
      */
     private void verify(List<Changes> actual, Csv expected) {
-        List<DoubleList> values = expected.values;
+        List<DoubleList> values = expected.values();
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
             Changes c = actual.get(j);

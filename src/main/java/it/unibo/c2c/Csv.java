@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
@@ -21,14 +22,20 @@ import static java.util.Arrays.stream;
  *
  * <p>NOTE: This class does not handle quoted strings and always assumes the separator is a comma.
  */
-class Csv {
+public record Csv(
+        List<String> headers,
+        List<DoubleList> values
+) {
 
-    List<String> headers;
-    List<DoubleList> values;
-
-    private Csv(List<String> headers, List<DoubleList> values) {
-        this.headers = headers;
-        this.values = values;
+    public Csv(List<String> headers, List<DoubleList> values) {
+        this.headers = Objects.requireNonNull(headers);
+        this.values = Objects.requireNonNull(values);
+        if (headers.isEmpty()) {
+            throw new IllegalArgumentException("headers cannot be empty");
+        }
+        if (values.size() != headers().size()) {
+            throw new IllegalArgumentException("The number of headers must match the number of values");
+        }
     }
 
     /**
@@ -36,8 +43,7 @@ class Csv {
      * the row.
      */
     public static Csv horizontal(InputStream stream) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8));
-        try {
+        try (var reader = new BufferedReader(new InputStreamReader(stream, UTF_8))) {
             List<String> headers = new ArrayList<>();
             List<DoubleList> values = new ArrayList<>();
             String line;
@@ -57,8 +63,7 @@ class Csv {
      * Regular column-oriented file with a header line on top.
      */
     public static Csv vertical(InputStream stream) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8));
-        try {
+        try (var reader = new BufferedReader(new InputStreamReader(stream, UTF_8))) {
             List<String> headers = Arrays.asList(reader.readLine().split(","));
             List<DoubleList> values = new ArrayList<>();
             for (int i = 0; i < headers.size(); i++) {
@@ -96,6 +101,13 @@ class Csv {
     }
 
     /**
+     * Get one row of the CSV as a DoubleList
+     */
+    public DoubleList getRow(int row) {
+        return getRow(row, 0);
+    }
+
+    /**
      * Split the Csv based on the value of the 'id' column. Assumes the rows are sorted and grouped
      * together.
      */
@@ -118,7 +130,7 @@ class Csv {
     /**
      * Extract a subset of rows as if it were another Csv
      */
-    Csv subset(int start, int end) {
+    public Csv subset(int start, int end) {
         List<DoubleList> copies = new ArrayList<>();
         int len = end - start + 1;
         for (DoubleList d : values) {
