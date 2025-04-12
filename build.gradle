@@ -40,7 +40,13 @@ java {
     }
 }
 
-// application {
-//     // Define the main class for the application.
-//     mainClass = 'org.example.App'
-// }
+application {
+    // Define the main class for the application.
+    mainClass = 'it.unibo.c2c.CommandLineMain'
+}
+
+tasks.run {
+    args = [
+            "src/test/resources/it/unibo/c2c/input.csv",
+    ]
+}

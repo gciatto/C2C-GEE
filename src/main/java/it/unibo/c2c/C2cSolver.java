@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Solver for the BottomUp Segmentation algorithm.
@@ -35,9 +36,32 @@ public class C2cSolver {
         @Doc(help = "Tolerance of spikes in the time series. A value of 1 indicates no spike removal.")
         @Optional
         public double spikesTolerance = 0.85;
+
+        @Doc(help = "Whether to invert the sign of the band.")
+        @Optional
+        public boolean revertBand = false;
+
+        @Override
+        public String toString() {
+            return "maxError=" + maxError +
+                    ", maxSegments=" + maxSegments +
+                    ", startYear=" + startYear +
+                    ", endYear=" + endYear +
+                    ", infill=" + infill +
+                    ", spikesTolerance=" + spikesTolerance +
+                    ", revertBand=" + revertBand;
+        }
     }
 
-    public final Args args = new Args();
+    public final Args args;
+
+    public C2cSolver(Args args) {
+        this.args = Objects.requireNonNull(args);
+    }
+
+    public C2cSolver() {
+        this(new Args());
+    }
 
     public @Nullable List<Changes> c2cBottomUp(DoubleList dates, DoubleList values) {
         return c2cBottomUp(dates, values, args);
@@ -46,6 +70,10 @@ public class C2cSolver {
     public @Nullable List<Changes> c2cBottomUp(DoubleList dates, DoubleList values, Args args) {
         if (values.doubleStream().filter(v -> v != 0).count() < 3) {
             return null;
+        }
+        // Revert band if requested.
+        if (args.revertBand) {
+            revert(values);
         }
         // Preprocess as requested.
         if (args.infill) {
@@ -56,6 +84,38 @@ public class C2cSolver {
         }
         // Start segmentation.
         return Segmentator.segment(dates, values, args.maxError, args.maxSegments);
+    }
+
+    public Csv c2cBottomUp(Csv inputs) {
+        return c2cBottomUp(inputs, args);
+    }
+
+    public Csv c2cBottomUp(Csv inputs, C2cSolver.Args args) {
+        Csv result = Csv.empty(Changes.headers("id"));
+        var years = inputs.getHeadersAsDoubles();
+        for (int i = 0; i < inputs.getRowsCount(); i++) {
+            DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
+            List<Changes> changes = c2cBottomUp(years, timeline, args);
+            if (changes != null) {
+                result.addRows(changesToCsv(i, changes));
+            }
+        }
+        return result;
+    }
+
+    public Csv changesToCsv(double id, List<Changes> changes) {
+        Csv result = Csv.empty(Changes.headers("id"));
+        for (Changes change : changes) {
+            DoubleList row = change.toDoubleList(id);
+            result.addRow(row);
+        }
+        return result;
+    }
+
+    private static void revert(DoubleList values) {
+        for (int i = 0; i < values.size(); i++) {
+            values.set(i, -values.getDouble(i));
+        }
     }
 
     private static void fillValues(DoubleList values) {

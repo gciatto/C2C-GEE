@@ -9,8 +9,6 @@ import org.junit.runners.JUnit4;
 
 import java.util.List;
 
-import static it.unibo.c2c.DoubleLists.doubleListOf;
-
 @RunWith(JUnit4.class)
 public class BottomupTest {
 
@@ -30,15 +28,14 @@ public class BottomupTest {
 
     @Test
     public void testGoldens() throws Exception {
-        var dates = doubleListOf(inputs.headers().stream().skip(1).mapToDouble(Double::parseDouble));
-        int numberOfInputs = inputs.values().getFirst().size();
+        var dates = inputs.getHeadersAsDoubles();
         //  Split expected results file by plot ID.
         List<Csv> expected = BottomupTest.expected.groupByColumn("id");
-        assertEquals(numberOfInputs, expected.size());
+        assertEquals(inputs.getRowsCount(), expected.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
         C2cSolver solver = new C2cSolver();
-        for (int i = 0; i < numberOfInputs; i++) {
+        for (int i = 0; i < inputs.getRowsCount(); i++) {
             // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
             List<Changes> result = solver.c2cBottomUp(dates, timeline);
