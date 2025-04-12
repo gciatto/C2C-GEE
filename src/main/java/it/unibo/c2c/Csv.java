@@ -1,7 +1,6 @@
 package it.unibo.c2c;
 
 import com.google.common.base.Splitter;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 
 import java.io.BufferedReader;
@@ -13,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static it.unibo.c2c.DoubleLists.doubleListOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
 
@@ -22,10 +22,7 @@ import static java.util.Arrays.stream;
  *
  * <p>NOTE: This class does not handle quoted strings and always assumes the separator is a comma.
  */
-public record Csv(
-        List<String> headers,
-        List<DoubleList> values
-) {
+public record Csv(List<String> headers, List<DoubleList> values) {
 
     public Csv(List<String> headers, List<DoubleList> values) {
         this.headers = Objects.requireNonNull(headers);
@@ -51,7 +48,7 @@ public record Csv(
                 String[] parts = line.split(",");
                 headers.add(parts[0]);
                 double[] doubles = stream(parts).skip(1).mapToDouble(Double::parseDouble).toArray();
-                values.add(DoubleArrayList.wrap(doubles));
+                values.add(doubleListOf(doubles));
             }
             return new Csv(headers, values);
         } catch (IOException e) {
@@ -67,7 +64,7 @@ public record Csv(
             List<String> headers = Arrays.asList(reader.readLine().split(","));
             List<DoubleList> values = new ArrayList<>();
             for (int i = 0; i < headers.size(); i++) {
-                values.add(new DoubleArrayList());
+                values.add(doubleListOf());
             }
             String line;
             while ((line = reader.readLine()) != null) {
@@ -93,7 +90,7 @@ public record Csv(
      * Get one row of the CSV as a DoubleList, skipping the first `skip` elements.
      */
     public DoubleList getRow(int row, int skip) {
-        DoubleArrayList result = new DoubleArrayList();
+        DoubleList result = doubleListOf();
         for (int col = skip; col < values.size(); col++) {
             result.add(values.get(col).getDouble(row));
         }
@@ -136,7 +133,7 @@ public record Csv(
         for (DoubleList d : values) {
             double[] copy = new double[len];
             d.getElements(start, copy, 0, len);
-            copies.add(DoubleArrayList.wrap(copy));
+            copies.add(doubleListOf(copy));
         }
         return new Csv(headers, copies);
     }

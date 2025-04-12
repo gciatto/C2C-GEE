@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
 import java.util.List;
 
+import static it.unibo.c2c.DoubleLists.argMin;
+
 /**
  * This segmentation algorithm consist in a modification of the bottom up algorithm
  * (https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.23.6570&rep=rep1&type=pdf) proposed by
@@ -131,18 +133,5 @@ public class Segmentator {
 
     private static double lerp(double y1, double y2, double x) {
         return y1 * (1 - x) + y2 * x;
-    }
-
-    private static int argMin(List<Double> mergeCost) {
-        double min = mergeCost.getFirst();
-        int pos = 0;
-        for (int i = 1; i < mergeCost.size(); i++) {
-            double value = mergeCost.get(i);
-            if (min > value) {
-                min = value;
-                pos = i;
-            }
-        }
-        return pos;
     }
 }
