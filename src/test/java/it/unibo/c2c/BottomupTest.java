@@ -37,12 +37,11 @@ public class BottomupTest {
         assertEquals(numberOfInputs, expected.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
-        C2cSolver.Args arguments = new C2cSolver.Args();
         C2cSolver solver = new C2cSolver();
         for (int i = 0; i < numberOfInputs; i++) {
             // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
-            List<Changes> result = solver.c2cBottomUp(dates, timeline, arguments);
+            List<Changes> result = solver.c2cBottomUp(dates, timeline);
             if (result != null) {
                 verify(result, expected.get(i));
             } else {

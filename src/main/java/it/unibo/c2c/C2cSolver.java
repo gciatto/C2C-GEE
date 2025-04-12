@@ -37,6 +37,12 @@ public class C2cSolver {
         public double spikesTolerance = 0.85;
     }
 
+    public final Args args = new Args();
+
+    public @Nullable List<Changes> c2cBottomUp(DoubleList dates, DoubleList values) {
+        return c2cBottomUp(dates, values, args);
+    }
+
     public @Nullable List<Changes> c2cBottomUp(DoubleList dates, DoubleList values, Args args) {
         if (values.doubleStream().filter(v -> v != 0).count() < 3) {
             return null;
