@@ -11,8 +11,6 @@ import java.util.List;
  */
 public class C2cSolver {
 
-    public static final double NODATA = Double.NaN;
-
     public static class Args extends ArgsBase {
         @Doc(help = "Maximum error (RMSE) allowed to remove points and construct segments.")
         @Optional
@@ -54,7 +52,7 @@ public class C2cSolver {
         return Segmentator.segment(dates, values, args.maxError, args.maxSegments);
     }
 
-    public static void fillValues(DoubleList values) {
+    private static void fillValues(DoubleList values) {
         // Infill missing data
         for (int i = 0; i < values.size(); i++) {
             if (values.getDouble(i) != 0) {
@@ -98,7 +96,7 @@ public class C2cSolver {
     /**
      * Find the first non-zero from `start` in the direction of `dir`. Returns -1 if none found.
      */
-    static int findValid(DoubleList list, int start, int dir) {
+    private static int findValid(DoubleList list, int start, int dir) {
         if (start == -1) {
             return -1;
         }
@@ -111,7 +109,7 @@ public class C2cSolver {
         return -1;
     }
 
-    public static void despikeTimeLine(DoubleList values, double spikesTolerance) {
+    private static void despikeTimeLine(DoubleList values, double spikesTolerance) {
         for (int i = 1; i < values.size() - 1; i++) {
             double left = values.getDouble(i - 1);
             double center = values.getDouble(i);
