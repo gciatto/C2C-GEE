@@ -1,14 +1,15 @@
 package it.unibo.c2c;
 
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static it.unibo.c2c.DoubleLists.doubleListOf;
 
 @RunWith(JUnit4.class)
 public class BottomupTest {
@@ -16,17 +17,23 @@ public class BottomupTest {
     private static final String SAMPLES_FILE = "input.csv";
     private static final String EXPECTED_FILE = "output.csv";
 
+    private static Csv inputs;
+    private static Csv expected;
+
+    @BeforeClass
+    public static void loadFiles() {
+        // Read input file.  It has dates as column headers and each row is a full timeline.
+        inputs = Csv.vertical(BottomupTest.class.getResourceAsStream(SAMPLES_FILE));
+        // Read expected results file
+        expected = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE));
+    }
+
     @Test
     public void testGoldens() throws Exception {
-        // Read input file.  It has dates as column headers and each row is a full timeline.
-        Csv inputs = Csv.vertical(getClass().getResourceAsStream(SAMPLES_FILE));
-        DoubleList dates =
-                DoubleArrayList.wrap(
-                        inputs.headers().stream().skip(1).mapToDouble(Double::parseDouble).toArray());
+        var dates = doubleListOf(inputs.headers().stream().skip(1).mapToDouble(Double::parseDouble));
         int numberOfInputs = inputs.values().getFirst().size();
-        // Read expected results file and split by plot ID.
-        List<Csv> expected =
-                Csv.vertical(getClass().getResourceAsStream(EXPECTED_FILE)).groupByColumn("id");
+        //  Split expected results file by plot ID.
+        List<Csv> expected = BottomupTest.expected.groupByColumn("id");
         assertEquals(numberOfInputs, expected.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
@@ -54,14 +61,18 @@ public class BottomupTest {
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
             Changes c = actual.get(j);
-            assertEquals(c.date(), expected.getColumn("year").getDouble(j), 1e-9);
-            assertEquals(c.value(), expected.getColumn("index").getDouble(j), 1e-9);
-            assertEquals(c.duration(), expected.getColumn("duration").getDouble(j), 1e-9);
-            assertEquals(c.magnitude(), expected.getColumn("magnitude").getDouble(j), 1e-9);
-            assertEquals(c.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j), 1e-9);
-            assertEquals(c.postDuration(), expected.getColumn("postDuration").getDouble(j), 1e-9);
-            assertEquals(c.postRate(), expected.getColumn("postRate").getDouble(j), 1e-9);
-            assertEquals(c.rate(), expected.getColumn("rate").getDouble(j), 1e-9);
+            assertEquals(c.date(), expected.getColumn("year").getDouble(j));
+            assertEquals(c.value(), expected.getColumn("index").getDouble(j));
+            assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));
+            assertEquals(c.magnitude(), expected.getColumn("magnitude").getDouble(j));
+            assertEquals(c.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j));
+            assertEquals(c.postDuration(), expected.getColumn("postDuration").getDouble(j));
+            assertEquals(c.postRate(), expected.getColumn("postRate").getDouble(j));
+            assertEquals(c.rate(), expected.getColumn("rate").getDouble(j));
         }
+    }
+
+    private void assertEquals(double actual, double expected) {
+        Assert.assertEquals(expected, actual, 1e-9);
     }
 }
