@@ -1,6 +1,7 @@
 package it.unibo.c2c;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -19,7 +20,7 @@ public class BottomupTest {
     public void testGoldens() throws Exception {
         // Read input file.  It has dates as column headers and each row is a full timeline.
         Csv inputs = Csv.vertical(getClass().getResourceAsStream(SAMPLES_FILE));
-        DoubleArrayList dates =
+        DoubleList dates =
                 DoubleArrayList.wrap(
                         inputs.headers.stream().skip(1).mapToDouble(Double::parseDouble).toArray());
         int numberOfInputs = inputs.values.getFirst().size();
@@ -33,7 +34,7 @@ public class BottomupTest {
         C2cSolver solver = new C2cSolver();
         for (int i = 0; i < numberOfInputs; i++) {
             // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
-            DoubleArrayList timeline = inputs.getRow(i, /* skip= */ 1);
+            DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
             List<Changes> result = solver.c2cBottomUp(dates, timeline, arguments);
             if (result != null) {
                 verify(result, expected.get(i));
@@ -49,7 +50,7 @@ public class BottomupTest {
      * Verify that the changes match the expected values.
      */
     private void verify(List<Changes> actual, Csv expected) {
-        List<DoubleArrayList> values = expected.values;
+        List<DoubleList> values = expected.values;
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
             Changes c = actual.get(j);

@@ -1,7 +1,7 @@
 package it.unibo.c2c;
 
 import com.google.earthengine.api.base.ArgsBase;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -39,8 +39,7 @@ public class C2cSolver {
         public double spikesTolerance = 0.85;
     }
 
-    public @Nullable List<Changes> c2cBottomUp(
-            DoubleArrayList dates, DoubleArrayList values, Args args) {
+    public @Nullable List<Changes> c2cBottomUp(DoubleList dates, DoubleList values, Args args) {
         if (values.doubleStream().filter(v -> v != 0).count() < 3) {
             return null;
         }
@@ -55,7 +54,7 @@ public class C2cSolver {
         return Segmentator.segment(dates, values, args.maxError, args.maxSegments);
     }
 
-    public static void fillValues(DoubleArrayList values) {
+    public static void fillValues(DoubleList values) {
         // Infill missing data
         for (int i = 0; i < values.size(); i++) {
             if (values.getDouble(i) != 0) {
@@ -99,7 +98,7 @@ public class C2cSolver {
     /**
      * Find the first non-zero from `start` in the direction of `dir`. Returns -1 if none found.
      */
-    static int findValid(DoubleArrayList list, int start, int dir) {
+    static int findValid(DoubleList list, int start, int dir) {
         if (start == -1) {
             return -1;
         }
@@ -112,7 +111,7 @@ public class C2cSolver {
         return -1;
     }
 
-    public static void despikeTimeLine(DoubleArrayList values, double spikesTolerance) {
+    public static void despikeTimeLine(DoubleList values, double spikesTolerance) {
         for (int i = 1; i < values.size() - 1; i++) {
             double left = values.getDouble(i - 1);
             double center = values.getDouble(i);

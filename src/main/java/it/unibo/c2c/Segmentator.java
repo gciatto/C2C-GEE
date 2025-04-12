@@ -1,6 +1,6 @@
 package it.unibo.c2c;
 
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +27,9 @@ public class Segmentator {
         }
     }
 
-    public static List<Changes> segment(
-            DoubleArrayList dates, DoubleArrayList values, double maxError, int maxSegm) {
-        ArrayList<Segment> segments = new ArrayList<>();
-        ArrayList<Double> mergeCost = new ArrayList<>();
+    public static List<Changes> segment(DoubleList dates, DoubleList values, double maxError, int maxSegm) {
+        List<Segment> segments = new ArrayList<>();
+        List<Double> mergeCost = new ArrayList<>();
         // initial segments
         for (int i = 0; i < values.size() - 1; i++) {
             segments.add(new Segment(i, i + 1));
@@ -91,8 +90,7 @@ public class Segmentator {
         return segmented;
     }
 
-    public static double calculateError(
-            DoubleArrayList dates, DoubleArrayList values, int start, int finish) {
+    public static double calculateError(DoubleList dates, DoubleList values, int start, int finish) {
         // linearInterpolation
         double y1 = values.getDouble(start);
         double y2 = values.getDouble(finish);
@@ -109,8 +107,7 @@ public class Segmentator {
         return Math.sqrt(error / (finish - start));
     }
 
-    public static Changes changeMetricsCalculator(
-            DoubleArrayList dates, DoubleArrayList values, int preIndex, int currIndex, int postIndex) {
+    public static Changes changeMetricsCalculator(DoubleList dates, DoubleList values, int preIndex, int currIndex, int postIndex) {
         double currDate = dates.getDouble(currIndex);
         double currValue = values.getDouble(currIndex);
         Changes change;

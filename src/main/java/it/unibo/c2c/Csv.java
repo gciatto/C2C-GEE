@@ -2,6 +2,7 @@ package it.unibo.c2c;
 
 import com.google.common.base.Splitter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
 
 /**
- * Read a resource file as a CSV into a {@link List<DoubleArrayList>} Data is stored as a list of
+ * Read a resource file as a CSV into a {@link List<DoubleList>} Data is stored as a list of
  * columns with a list of string headers.
  *
  * <p>NOTE: This class does not handle quoted strings and always assumes the separator is a comma.
@@ -23,9 +24,9 @@ import static java.util.Arrays.stream;
 class Csv {
 
     List<String> headers;
-    List<DoubleArrayList> values;
+    List<DoubleList> values;
 
-    private Csv(List<String> headers, List<DoubleArrayList> values) {
+    private Csv(List<String> headers, List<DoubleList> values) {
         this.headers = headers;
         this.values = values;
     }
@@ -38,7 +39,7 @@ class Csv {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8));
         try {
             List<String> headers = new ArrayList<>();
-            List<DoubleArrayList> values = new ArrayList<>();
+            List<DoubleList> values = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -59,7 +60,7 @@ class Csv {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8));
         try {
             List<String> headers = Arrays.asList(reader.readLine().split(","));
-            List<DoubleArrayList> values = new ArrayList<>();
+            List<DoubleList> values = new ArrayList<>();
             for (int i = 0; i < headers.size(); i++) {
                 values.add(new DoubleArrayList());
             }
@@ -79,14 +80,14 @@ class Csv {
     /**
      * Get a column by name.
      */
-    public DoubleArrayList getColumn(String name) {
+    public DoubleList getColumn(String name) {
         return values.get(headers.indexOf(name));
     }
 
     /**
-     * Get one row of the CSV as a DoubleArrayList, skipping the first `skip` elements.
+     * Get one row of the CSV as a DoubleList, skipping the first `skip` elements.
      */
-    public DoubleArrayList getRow(int row, int skip) {
+    public DoubleList getRow(int row, int skip) {
         DoubleArrayList result = new DoubleArrayList();
         for (int col = skip; col < values.size(); col++) {
             result.add(values.get(col).getDouble(row));
@@ -99,7 +100,7 @@ class Csv {
      * together.
      */
     public List<Csv> groupByColumn(String id) {
-        DoubleArrayList groupColumn = getColumn(id);
+        DoubleList groupColumn = getColumn(id);
         List<Csv> result = new ArrayList<>();
         int startRow = 0;
         double lastGroup = groupColumn.getDouble(0);
@@ -118,9 +119,9 @@ class Csv {
      * Extract a subset of rows as if it were another Csv
      */
     Csv subset(int start, int end) {
-        List<DoubleArrayList> copies = new ArrayList<>();
+        List<DoubleList> copies = new ArrayList<>();
         int len = end - start + 1;
-        for (DoubleArrayList d : values) {
+        for (DoubleList d : values) {
             double[] copy = new double[len];
             d.getElements(start, copy, 0, len);
             copies.add(DoubleArrayList.wrap(copy));
