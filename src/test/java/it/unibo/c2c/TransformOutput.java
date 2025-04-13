@@ -27,9 +27,8 @@ public class TransformOutput {
             case "default" -> doNothing(input, output);
             default -> throw new IllegalArgumentException("Unknown task: " + task);
         }
-        revertBand(input, output);
         var newOutputFile = new File(TARGET_DIR, newOutputFileName);
-        try (var writer = new FileWriter(newOutputFile)) {
+        try (var writer = new FileWriter(newOutputFile, /* append= */ false)) {
             output.writeTo(writer);
         } finally {
             System.out.println("Output written to " + newOutputFile.getPath());
