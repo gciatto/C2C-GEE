@@ -51,7 +51,7 @@ tasks.run {
     ]
 }
 
-["revert", "filter"].each { cmd ->
+["revert", "filter", "default"].each { cmd ->
     tasks.register("generateTestDataFor${cmd.capitalize()}", JavaExec) {
         group = "verification"
         classpath = sourceSets.test.runtimeClasspath

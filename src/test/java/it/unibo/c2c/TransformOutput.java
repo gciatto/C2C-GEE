@@ -24,6 +24,7 @@ public class TransformOutput {
         switch (task) {
             case "revert" -> revertBand(input, output);
             case "filter" -> negativeMagnitudeOnly(input, output);
+            case "default" -> doNothing(input, output);
             default -> throw new IllegalArgumentException("Unknown task: " + task);
         }
         revertBand(input, output);
@@ -32,6 +33,13 @@ public class TransformOutput {
             output.writeTo(writer);
         } finally {
             System.out.println("Output written to " + newOutputFile.getPath());
+        }
+    }
+
+    private static void doNothing(Csv input, Csv output) {
+        // No transformation needed
+        for (int i = 0; i < input.getRowsCount(); i++) {
+            output.addRow(input.getRow(i));
         }
     }
 
