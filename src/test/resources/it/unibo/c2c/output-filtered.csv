@@ -1,3 +1,5 @@
+# Running class it.unibo.c2c.CommandLineMain with args: [--negativeMagnitudeOnly, ./src/test/resources/it/unibo/c2c/input.csv]
+# Running on file ./src/test/resources/it/unibo/c2c/input.csv with args: maxError=75.0, maxSegments=6, startYear=1984, endYear=2019, infill=true, spikesTolerance=0.85, revertBand=false, negativeMagnitudeOnly=true
 id, year, index, magnitude, duration, rate, postMagnitude, postDuration, postRate
 0,1995,383,-137,1,-137,212,1,212
 0,2014,499,-96,18,-5.333333333333333,-450,1,-450
@@ -720,7 +722,6 @@ id, year, index, magnitude, duration, rate, postMagnitude, postDuration, postRat
 425,2019,428,-102,35,-2.914285714285714,NaN,NaN,NaN
 426,2019,385,-13,5,-2.6,NaN,NaN,NaN
 427,2019,599,-33,35,-0.942857142857143,NaN,NaN,NaN
-428,2019,347,-30,35,-0.857142857142857,NaN,NaN,NaN
 429,2016,-296,-964,1,-964,492,1,492
 430,1990,157,-482,6,-80.33333333333333,427,11,38.81818181818182
 430,2002,251,-333,1,-333,192,11,17.454545454545453

@@ -6,9 +6,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
@@ -155,22 +153,20 @@ public record Csv(List<String> headers, List<DoubleList> values) {
     }
 
     /**
-     * Split the Csv based on the value of the 'id' column. Assumes the rows are sorted and grouped
-     * together.
+     * Split the Csv based on the value of the column named 'name'.
+     * Preserves the partial order of the rows.
      */
-    public List<Csv> groupByColumn(String id) {
-        DoubleList groupColumn = getColumn(id);
-        List<Csv> result = new ArrayList<>();
-        int startRow = 0;
-        double lastGroup = groupColumn.getDouble(0);
-        for (int i = 0; i < groupColumn.size(); i++) {
-            if (groupColumn.getDouble(i) != lastGroup) {
-                result.add(subset(startRow, i - 1));
-                startRow = i;
-            }
-            lastGroup = groupColumn.getDouble(i);
+    public Map<Double, Csv> groupByColumn(String id) {
+        DoubleList groups = doubleListOf(getColumn(id).doubleStream().distinct().sorted());
+        var result = new LinkedHashMap<Double, Csv>();
+        for (int i = 0; i < groups.size(); i++) {
+            result.put(groups.getDouble(i), empty(headers));
         }
-        result.add(subset(startRow, groupColumn.size() - 1));
+        for (int i = 0; i < getRowsCount(); i++) {
+            DoubleList row = doubleListOf(getRow(i));
+            double group = row.getDouble(headers.indexOf(id));
+            result.get(group).addRow(row);
+        }
         return result;
     }
 
