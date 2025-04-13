@@ -50,3 +50,15 @@ tasks.run {
             "src/test/resources/it/unibo/c2c/input.csv",
     ]
 }
+
+["revert", "filter"].each { cmd ->
+    tasks.register("generateTestDataFor${cmd.capitalize()}", JavaExec) {
+        group = "verification"
+        classpath = sourceSets.test.runtimeClasspath
+        mainClass.set("it.unibo.c2c.TransformOutput")
+        args = [cmd]
+        doFirst {
+            println("Running class ${mainClass.get()} with args: ${args}")
+        }
+    }
+}

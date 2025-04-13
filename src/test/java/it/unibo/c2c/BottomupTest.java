@@ -16,7 +16,7 @@ public class BottomupTest {
 
     private static final String SAMPLES_FILE = "input.csv";
     private static final String EXPECTED_FILE_DEFAULT = "output-default.csv";
-    private static final String EXPECTED_FILE_REVERT = "output-revert.csv";
+    private static final String EXPECTED_FILE_REVERT = "output-reverted.csv";
 
     private static Csv inputs;
     private static Csv expectedDefault;
