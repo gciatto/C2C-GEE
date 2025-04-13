@@ -7,44 +7,46 @@ import java.util.List;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
 
-/**
- * Just a POD to record a change segment.
- */
-public record Changes(
-        double date,
-        double value,
-        double magnitude,
-        double duration,
-        double postMagnitude,
-        double postDuration
-) {
-    public static Changes post(double date, double value, double postMagnitude, double postDuration) {
-        return new Changes(date, value, Double.NaN, Double.NaN, postMagnitude, postDuration);
+public interface Changes {
+    double date();
+
+    double value();
+
+    double magnitude();
+
+    double duration();
+
+    default double rate() {
+        return magnitude() / duration();
     }
 
-    public static Changes pre(double date, double value, double magnitude, double duration) {
-        return new Changes(date, value, magnitude, duration, Double.NaN, Double.NaN);
+    default DoubleList toDoubleList(double... prepend) {
+        return toDoubleList(doubleListOf(prepend));
     }
 
-    public static List<String> headers(String... prepend) {
-        var result = new ArrayList<>(List.of(prepend));
-        var list = List.of("year", "index", "magnitude", "duration", "rate", "postMagnitude", "postDuration", "postRate");
-        result.addAll(list);
+    DoubleList toDoubleList(List<Double> prepend);
+
+    AllChanges withRegrowth(double previousValue, List<Double> nextYearsValues);
+
+    static List<String> headers(String... prepend) {
+        return headers(List.of(prepend));
+    }
+
+    static List<String> headers(List<String> prepend) {
+        var result = new ArrayList<>(prepend);
+        result.addAll(List.of("year", "index", "magnitude", "duration", "rate"));
         return result;
     }
 
-    public double rate() {
-        return magnitude / duration;
+    static Changes pre(double date, double value, double magnitude, double duration) {
+        return PostChanges.of(date, value, magnitude, duration, Double.NaN, Double.NaN);
     }
 
-    public double postRate() {
-        return postMagnitude / postDuration;
+    static PostChanges post(double date, double value, double magnitude, double duration, double postMagnitude, double postDuration) {
+        return PostChanges.of(date, value, magnitude, duration, postMagnitude, postDuration);
     }
 
-    public DoubleList toDoubleList(double... prepend) {
-        var result = doubleListOf(prepend);
-        var list = doubleListOf(date, value, magnitude, duration, rate(), postMagnitude, postDuration(), postRate());
-        result.addAll(list);
-        return result;
+    static PostChanges postOnly(double date, double value, double postMagnitude, double postDuration) {
+        return PostChanges.postOnly(date, value, postMagnitude, postDuration);
     }
 }

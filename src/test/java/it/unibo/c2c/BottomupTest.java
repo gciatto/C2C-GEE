@@ -1,6 +1,7 @@
 package it.unibo.c2c;
 
 import it.unibo.c2c.changes.Changes;
+import it.unibo.c2c.changes.PostChanges;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -94,7 +95,7 @@ public class BottomupTest {
         List<DoubleList> values = expected.values();
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
-            Changes c = actual.get(j);
+            PostChanges c = (PostChanges) actual.get(j);
             assertEquals(c.date(), expected.getColumn("year").getDouble(j));
             assertEquals(c.value(), expected.getColumn("index").getDouble(j));
             assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));

@@ -115,7 +115,7 @@ public class Segmentator {
         if (currIndex == 0) {
             double postMagnitude = values.getDouble(postIndex) - currValue;
             double postDuration = dates.getDouble(postIndex) - currDate;
-            change = Changes.post(currDate, currValue, postMagnitude, postDuration);
+            change = Changes.postOnly(currDate, currValue, postMagnitude, postDuration);
         } else if (currIndex == values.size() - 1) {
             double magnitude = currValue - values.getDouble(preIndex);
             double duration = currDate - dates.getDouble(preIndex);
@@ -125,7 +125,7 @@ public class Segmentator {
             double duration = currDate - dates.getDouble(preIndex);
             double postMagnitude = values.getDouble(postIndex) - currValue;
             double postDuration = dates.getDouble(postIndex) - currDate;
-            change = new Changes(currDate, currValue, magnitude, duration, postMagnitude, postDuration);
+            change = Changes.post(currDate, currValue, magnitude, duration, postMagnitude, postDuration);
         }
         return change;
     }

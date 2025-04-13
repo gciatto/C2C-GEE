@@ -2,6 +2,7 @@ package it.unibo.c2c;
 
 import com.google.earthengine.api.base.ArgsBase;
 import it.unibo.c2c.changes.Changes;
+import it.unibo.c2c.changes.PostChanges;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.jspecify.annotations.Nullable;
 
@@ -12,6 +13,8 @@ import java.util.Objects;
  * Solver for the BottomUp Segmentation algorithm.
  */
 public class C2cSolver {
+
+    private static final List<String> DEFAULT_HEADERS = PostChanges.headers(Changes.headers("id"));
 
     public static class Args extends ArgsBase {
         @Doc(help = "Maximum error (RMSE) allowed to remove points and construct segments.")
@@ -101,7 +104,7 @@ public class C2cSolver {
     }
 
     public Csv c2cBottomUp(Csv inputs, C2cSolver.Args args) {
-        Csv result = Csv.empty(Changes.headers("id"));
+        Csv result = Csv.empty(DEFAULT_HEADERS);
         var years = inputs.getHeadersAsDoubles();
         for (int i = 0; i < inputs.getRowsCount(); i++) {
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
@@ -114,7 +117,7 @@ public class C2cSolver {
     }
 
     public Csv changesToCsv(double id, List<Changes> changes) {
-        Csv result = Csv.empty(Changes.headers("id"));
+        Csv result = Csv.empty(DEFAULT_HEADERS);
         for (Changes change : changes) {
             DoubleList row = change.toDoubleList(id);
             result.addRow(row);
