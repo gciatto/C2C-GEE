@@ -1,3 +1,4 @@
+# null results at: 428, 824, 989
 id,year,index,magnitude,duration,rate,postMagnitude,postDuration,postRate
 000,1984,498.0,NaN,NaN,NaN,22.0,10.0,2.2
 000,1994,520.0,22.0,10.0,2.2,-137.0,1.0,-137.0

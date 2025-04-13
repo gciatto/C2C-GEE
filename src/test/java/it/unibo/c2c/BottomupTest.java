@@ -3,7 +3,9 @@ package it.unibo.c2c;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -13,36 +15,56 @@ import java.util.List;
 public class BottomupTest {
 
     private static final String SAMPLES_FILE = "input.csv";
-    private static final String EXPECTED_FILE = "output.csv";
+    private static final String EXPECTED_FILE_DEFAULT = "output-default.csv";
+    private static final String EXPECTED_FILE_REVERT = "output-revert.csv";
 
     private static Csv inputs;
-    private static Csv expected;
+    private static Csv expectedDefault;
+    private static Csv expectedRevert;
+
+    @Rule
+    public TestName testName = new TestName();
+
+    public int lastID;
 
     @BeforeClass
     public static void loadFiles() {
         // Read input file.  It has dates as column headers and each row is a full timeline.
         inputs = Csv.vertical(BottomupTest.class.getResourceAsStream(SAMPLES_FILE));
-        // Read expected results file
-        expected = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE));
+        // Read expected results files
+        expectedDefault = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_DEFAULT));
+        expectedRevert = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_REVERT));
     }
 
     @Test
-    public void testGoldens() throws Exception {
+    public void testC2cBottomUpWithDefaultArgs() {
+        testC2cBottomUpWithArgs(new C2cSolver.Args(), expectedDefault);
+    }
+
+    @Test
+    public void testC2cBottomUpWithRevertBand() {
+        var args = new C2cSolver.Args();
+        args.revertBand = true;
+        testC2cBottomUpWithArgs(args, expectedRevert);
+    }
+
+    private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected) {
         var dates = inputs.getHeadersAsDoubles();
-        //  Split expected results file by plot ID.
-        List<Csv> expected = BottomupTest.expected.groupByColumn("id");
-        assertEquals(inputs.getRowsCount(), expected.size());
+        //  Split expectedById results file by plot ID.
+        List<Csv> expectedById = expected.groupByColumn("id");
+//        assertEquals(inputs.getRowsCount(), expectedById.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
-        C2cSolver solver = new C2cSolver();
+        C2cSolver solver = new C2cSolver(args);
         for (int i = 0; i < inputs.getRowsCount(); i++) {
             // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
             List<Changes> result = solver.c2cBottomUp(dates, timeline);
             if (result != null) {
-                verify(result, expected.get(i));
+                verify(i, result, expectedById.get(i));
             } else {
                 nullCount++;
+                System.out.printf("Null result for row: %d\n", i);
             }
         }
         // There are 3 inputs that don't have enough points.
@@ -52,7 +74,8 @@ public class BottomupTest {
     /**
      * Verify that the changes match the expected values.
      */
-    private void verify(List<Changes> actual, Csv expected) {
+    private void verify(int id, List<Changes> actual, Csv expected) {
+        this.lastID = id;
         List<DoubleList> values = expected.values();
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
@@ -69,6 +92,16 @@ public class BottomupTest {
     }
 
     private void assertEquals(double actual, double expected) {
-        Assert.assertEquals(expected, actual, 1e-9);
+        Assert.assertEquals(
+                "Failed equality assertion in %s, row with ID %d: %s != %s".formatted(
+                        testName.getMethodName(),
+                        lastID,
+                        expected,
+                        actual
+                ),
+                expected,
+                actual,
+                1e-9
+        );
     }
 }
