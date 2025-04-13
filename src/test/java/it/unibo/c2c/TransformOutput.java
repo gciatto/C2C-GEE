@@ -62,7 +62,7 @@ public class TransformOutput {
 
     private static void negativeMagnitudeOnly(Csv input, Csv output) {
         for (int i = 0; i < input.getRowsCount(); i++) {
-            DoubleList row = input.getRow(i);
+            DoubleList row = doubleListOf(input.getRow(i));
             int magnitudeIndex = input.headers().indexOf("magnitude");
             double magnitudeValue = row.getDouble(magnitudeIndex);
             if (!Double.isNaN(magnitudeValue) && magnitudeValue < 0) {
