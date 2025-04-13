@@ -10,6 +10,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertFalse;
 
 @RunWith(JUnit4.class)
 public class BottomupTest {
@@ -17,10 +20,9 @@ public class BottomupTest {
     private static final String SAMPLES_FILE = "input.csv";
     private static final String EXPECTED_FILE_DEFAULT = "output-default.csv";
     private static final String EXPECTED_FILE_REVERT = "output-reverted.csv";
+    private static final String EXPECTED_FILE_FILTER = "output-filtered.csv";
 
-    private static Csv inputs;
-    private static Csv expectedDefault;
-    private static Csv expectedRevert;
+    private static Csv inputs, expectedDefault, expectedRevert, expectedFilter;
 
     @Rule
     public TestName testName = new TestName();
@@ -34,6 +36,7 @@ public class BottomupTest {
         // Read expected results files
         expectedDefault = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_DEFAULT));
         expectedRevert = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_REVERT));
+        expectedFilter = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTER));
     }
 
     @Test
@@ -48,10 +51,17 @@ public class BottomupTest {
         testC2cBottomUpWithArgs(args, expectedRevert);
     }
 
+    @Test
+    public void testC2cBottomUpWithNegativeMagnitudeOnly() {
+        var args = new C2cSolver.Args();
+        args.negativeMagnitudeOnly = true;
+        testC2cBottomUpWithArgs(args, expectedFilter);
+    }
+
     private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected) {
         var dates = inputs.getHeadersAsDoubles();
         //  Split expectedById results file by plot ID.
-        List<Csv> expectedById = expected.groupByColumn("id");
+        Map<Double, Csv> expectedById = expected.groupByColumn("id");
 //        assertEquals(inputs.getRowsCount(), expectedById.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
@@ -60,11 +70,15 @@ public class BottomupTest {
             // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
             List<Changes> result = solver.c2cBottomUp(dates, timeline);
+            Double id = Double.valueOf(i);
+            Csv expectedCsv = expectedById.getOrDefault(id, Csv.empty(expected.headers()));
             if (result != null) {
-                verify(i, result, expectedById.get(i));
+                verify(i, result, expectedCsv);
             } else {
                 nullCount++;
                 System.out.printf("Null result for row: %d\n", i);
+                assertFalse(expectedById.containsKey(id));
+                verify(i, List.of(), expectedCsv);
             }
         }
         // There are 3 inputs that don't have enough points.

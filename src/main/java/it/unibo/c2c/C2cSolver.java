@@ -41,6 +41,10 @@ public class C2cSolver {
         @Optional
         public boolean revertBand = false;
 
+        @Doc(help = "Whether filter out changes having a non-negative magnitude.")
+        @Optional
+        public boolean negativeMagnitudeOnly = false;
+
         @Override
         public String toString() {
             return "maxError=" + maxError +
@@ -49,7 +53,8 @@ public class C2cSolver {
                     ", endYear=" + endYear +
                     ", infill=" + infill +
                     ", spikesTolerance=" + spikesTolerance +
-                    ", revertBand=" + revertBand;
+                    ", revertBand=" + revertBand +
+                    ", negativeMagnitudeOnly=" + negativeMagnitudeOnly;
         }
     }
 
@@ -83,7 +88,11 @@ public class C2cSolver {
             despikeTimeLine(values, args.spikesTolerance);
         }
         // Start segmentation.
-        return Segmentator.segment(dates, values, args.maxError, args.maxSegments);
+        var result = Segmentator.segment(dates, values, args.maxError, args.maxSegments);
+        if (args.negativeMagnitudeOnly) {
+            filterOutNonNegativeChanges(result);
+        }
+        return result;
     }
 
     public Csv c2cBottomUp(Csv inputs) {
@@ -116,6 +125,10 @@ public class C2cSolver {
         for (int i = 0; i < values.size(); i++) {
             values.set(i, -values.getDouble(i));
         }
+    }
+
+    private static boolean filterOutNonNegativeChanges(List<Changes> changes) {
+        return changes.removeIf(c -> Double.isNaN(c.magnitude()) || c.magnitude() >= 0);
     }
 
     private static void fillValues(DoubleList values) {
