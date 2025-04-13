@@ -18,6 +18,14 @@ public record Changes(
         double postMagnitude,
         double postDuration
 ) {
+    public static Changes post(double date, double value, double postMagnitude, double postDuration) {
+        return new Changes(date, value, Double.NaN, Double.NaN, postMagnitude, postDuration);
+    }
+
+    public static Changes pre(double date, double value, double magnitude, double duration) {
+        return new Changes(date, value, magnitude, duration, Double.NaN, Double.NaN);
+    }
+
     public static List<String> headers(String... prepend) {
         var result = new ArrayList<>(List.of(prepend));
         var list = List.of("year", "index", "magnitude", "duration", "rate", "postMagnitude", "postDuration", "postRate");

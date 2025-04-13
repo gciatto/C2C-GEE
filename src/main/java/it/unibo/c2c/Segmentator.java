@@ -14,8 +14,6 @@ import static it.unibo.c2c.DoubleLists.argMin;
  */
 public class Segmentator {
 
-    private static final double NODATA = Double.NaN;
-
     private Segmentator() {
     }
 
@@ -116,11 +114,11 @@ public class Segmentator {
         if (currIndex == 0) {
             double postMagnitude = values.getDouble(postIndex) - currValue;
             double postDuration = dates.getDouble(postIndex) - currDate;
-            change = new Changes(currDate, currValue, NODATA, NODATA, postMagnitude, postDuration);
+            change = Changes.post(currDate, currValue, postMagnitude, postDuration);
         } else if (currIndex == values.size() - 1) {
             double magnitude = currValue - values.getDouble(preIndex);
             double duration = currDate - dates.getDouble(preIndex);
-            change = new Changes(currDate, currValue, magnitude, duration, NODATA, NODATA);
+            change = Changes.pre(currDate, currValue, magnitude, duration);
         } else {
             double magnitude = currValue - values.getDouble(preIndex);
             double duration = currDate - dates.getDouble(preIndex);
