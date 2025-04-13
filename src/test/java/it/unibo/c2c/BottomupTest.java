@@ -1,5 +1,6 @@
 package it.unibo.c2c;
 
+import it.unibo.c2c.changes.Changes;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.Assert;
 import org.junit.BeforeClass;

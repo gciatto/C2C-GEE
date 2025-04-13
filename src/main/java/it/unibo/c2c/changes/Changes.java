@@ -1,4 +1,4 @@
-package it.unibo.c2c;
+package it.unibo.c2c.changes;
 
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 
