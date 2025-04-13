@@ -41,14 +41,25 @@ java {
 }
 
 application {
-    // Define the main class for the application.
-    mainClass = 'it.unibo.c2c.CommandLineMain'
+    mainClass.set("it.unibo.c2c.CommandLineMain")
 }
 
-tasks.run {
-    args = [
-            "src/test/resources/it/unibo/c2c/input.csv",
-    ]
+def inputFile = file("src/test/resources/it/unibo/c2c/input.csv")
+
+tasks.getByName("run") {
+    args = [inputFile]
+}
+
+["revertBand", "negativeMagnitudeOnly"].each { arg ->
+    tasks.register("runWith${arg.capitalize()}", JavaExec) {
+        group = "application"
+        classpath = sourceSets.main.runtimeClasspath
+        mainClass.set(application.mainClass)
+        args = ["--${arg}", inputFile]
+        doFirst {
+            println("# Running class ${mainClass.get()} with args: ${args}")
+        }
+    }
 }
 
 ["revert", "filter", "default"].each { cmd ->
