@@ -47,10 +47,18 @@ application {
 def inputFile = file("src/test/resources/it/unibo/c2c/input.csv")
 
 tasks.getByName("run") {
-    args = [inputFile]
+    def revertBand = findProperty("revertBand") == "true"
+    def negativeMagnitudeOnly = findProperty("negativeMagnitudeOnly") == "true"
+    def regrowthMetrics = findProperty("regrowthMetrics") == "true"
+    args = [
+        "--revertBand=${revertBand}",
+        "--negativeMagnitudeOnly=${negativeMagnitudeOnly}",
+        "--regrowthMetrics=${regrowthMetrics}",
+        inputFile
+    ]
 }
 
-["revertBand", "negativeMagnitudeOnly"].each { arg ->
+["revertBand", "negativeMagnitudeOnly", "regrowthMetrics"].each { arg ->
     tasks.register("runWith${arg.capitalize()}", JavaExec) {
         group = "application"
         classpath = sourceSets.main.runtimeClasspath

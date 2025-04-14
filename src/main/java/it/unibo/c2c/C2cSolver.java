@@ -3,6 +3,7 @@ package it.unibo.c2c;
 import com.google.earthengine.api.base.ArgsBase;
 import it.unibo.c2c.changes.Changes;
 import it.unibo.c2c.changes.PostChanges;
+import it.unibo.c2c.changes.RegrowthChanges;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.jspecify.annotations.Nullable;
 
@@ -13,8 +14,6 @@ import java.util.Objects;
  * Solver for the BottomUp Segmentation algorithm.
  */
 public class C2cSolver {
-
-    private static final List<String> DEFAULT_HEADERS = PostChanges.headers(Changes.headers("id"));
 
     public static class Args extends ArgsBase {
         @Doc(help = "Maximum error (RMSE) allowed to remove points and construct segments.")
@@ -49,6 +48,14 @@ public class C2cSolver {
         @Optional
         public boolean negativeMagnitudeOnly = false;
 
+        @Doc(help = "Whether include post metrics in the output (postMagnitude, postDuration, postRate).")
+        @Optional
+        public boolean postMetrics = false;
+
+        @Doc(help = "Whether include regrowth metrics in the output (indexRegrowth, recoveryIndicator, y2r60, y2r80, y2r100).")
+        @Optional
+        public boolean regrowthMetrics = false;
+
         @Override
         public String toString() {
             return "maxError=" + maxError +
@@ -58,7 +65,9 @@ public class C2cSolver {
                     ", infill=" + infill +
                     ", spikesTolerance=" + spikesTolerance +
                     ", revertBand=" + revertBand +
-                    ", negativeMagnitudeOnly=" + negativeMagnitudeOnly;
+                    ", negativeMagnitudeOnly=" + negativeMagnitudeOnly +
+                    ", postMetrics=" + postMetrics +
+                    ", regrowthMetrics=" + regrowthMetrics;
         }
     }
 
@@ -92,7 +101,7 @@ public class C2cSolver {
             despikeTimeLine(values, args.spikesTolerance);
         }
         // Start segmentation.
-        var result = Segmentator.segment(dates, values, args.maxError, args.maxSegments);
+        var result = Segmentator.segment(dates, values, args.maxError, args.maxSegments, args.regrowthMetrics);
         if (args.negativeMagnitudeOnly) {
             filterOutNonNegativeChanges(result);
         }
@@ -103,21 +112,30 @@ public class C2cSolver {
         return c2cBottomUp(inputs, args);
     }
 
+    private static List<String> headers(C2cSolver.Args args) {
+        var result = PostChanges.headers(Changes.headers("id"));
+        if (args.regrowthMetrics) {
+            result = RegrowthChanges.headers(result);
+        }
+        return result;
+    }
+
     public Csv c2cBottomUp(Csv inputs, C2cSolver.Args args) {
-        Csv result = Csv.empty(DEFAULT_HEADERS);
+        List<String> headers = headers(args);
+        Csv result = Csv.empty(headers);
         var years = inputs.getHeadersAsDoubles();
         for (int i = 0; i < inputs.getRowsCount(); i++) {
             DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
             List<Changes> changes = c2cBottomUp(years, timeline, args);
             if (changes != null) {
-                result.addRows(changesToCsv(i, changes));
+                result.addRows(changesToCsv(i, changes, headers));
             }
         }
         return result;
     }
 
-    public Csv changesToCsv(double id, List<Changes> changes) {
-        Csv result = Csv.empty(DEFAULT_HEADERS);
+    private Csv changesToCsv(double id, List<Changes> changes, List<String> headers) {
+        Csv result = Csv.empty(headers);
         for (Changes change : changes) {
             DoubleList row = change.toDoubleList(id);
             result.addRow(row);
@@ -132,7 +150,7 @@ public class C2cSolver {
     }
 
     private static boolean filterOutNonNegativeChanges(List<Changes> changes) {
-        return changes.removeIf(c -> Double.isNaN(c.magnitude()) || c.magnitude() >= 0);
+        return changes.removeIf(c -> !c.hasNegativeMagnitude());
     }
 
     private static void fillValues(DoubleList values) {

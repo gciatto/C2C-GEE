@@ -1,5 +1,6 @@
 package it.unibo.c2c;
 
+import it.unibo.c2c.changes.AllChanges;
 import it.unibo.c2c.changes.Changes;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 
@@ -29,6 +30,16 @@ public class Segmentator {
     }
 
     public static List<Changes> segment(DoubleList dates, DoubleList values, double maxError, int maxSegm) {
+        return segment(dates, values, maxError, maxSegm, false);
+    }
+
+    public static List<Changes> segment(
+            DoubleList dates,
+            DoubleList values,
+            double maxError,
+            int maxSegm,
+            boolean withRegrowthMetrics
+    ) {
         List<Segment> segments = new ArrayList<>();
         List<Double> mergeCost = new ArrayList<>();
         // initial segments
@@ -80,13 +91,13 @@ public class Segmentator {
                 leftIndex = segments.get(i - 1).start;
                 rightIndex = segments.get(i).finish;
             }
-            Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex);
+            Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, withRegrowthMetrics);
             segmented.add(c);
         }
         // add last change
         centralIndex = segments.getLast().finish;
         leftIndex = segments.getLast().start;
-        Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex);
+        Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, withRegrowthMetrics);
         segmented.add(c);
         return segmented;
     }
@@ -108,7 +119,14 @@ public class Segmentator {
         return Math.sqrt(error / (finish - start));
     }
 
-    private static Changes changeMetricsCalculator(DoubleList dates, DoubleList values, int preIndex, int currIndex, int postIndex) {
+    private static Changes changeMetricsCalculator(
+            DoubleList dates,
+            DoubleList values,
+            int preIndex,
+            int currIndex,
+            int postIndex,
+            boolean withRegrowthMetrics
+    ) {
         double currDate = dates.getDouble(currIndex);
         double currValue = values.getDouble(currIndex);
         Changes change;
@@ -127,7 +145,48 @@ public class Segmentator {
             double postDuration = dates.getDouble(postIndex) - currDate;
             change = Changes.post(currDate, currValue, magnitude, duration, postMagnitude, postDuration);
         }
+        if (withRegrowthMetrics) {
+            if (change.hasNegativeMagnitude()) {
+                change = extendWithRegrowthMetrics(dates, values, change, currIndex);
+            } else {
+                change = change.dummyRegrowth();
+            }
+        }
         return change;
+    }
+
+    private static AllChanges extendWithRegrowthMetrics(
+            DoubleList dates,
+            DoubleList values,
+            Changes changes,
+            int currentIndex
+    ) {
+        try {
+            int nextIndex;
+            boolean hasRegrown = false;
+            for (int i = 1; (nextIndex = currentIndex + i) < values.size(); i++) {
+                var nextValue = values.getDouble(nextIndex);
+                if (!hasRegrown && percent(changes, nextValue) >= 1.0) {
+                    hasRegrown = true;
+                }
+                if (i >= 6 && hasRegrown) {
+                    nextIndex++;
+                    break;
+                }
+            }
+            return changes.withRegrowth(
+                    dates.subList(currentIndex + 1, nextIndex),
+                    values.subList(currentIndex + 1, nextIndex)
+            );
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return changes.dummyRegrowth();
+        }
+    }
+
+    private static double percent(Changes changes, double value) {
+        double target = Math.abs(changes.magnitude());
+        double current = Math.abs(value - changes.value());
+        return current / target;
     }
 
     private static double lerp(double y1, double y2, double x) {

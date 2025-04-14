@@ -1,18 +1,24 @@
 package it.unibo.c2c.changes;
 
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.List;
+import java.util.Objects;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
 
-record AllChangesWrapper(
-        PostChanges changes,
-        double previousValue,
-        DoubleList nextYearsValues
-) implements AllChanges {
+record AllChangesWrapper(PostChanges changes, DoubleList nextDates, DoubleList nextValues) implements AllChanges {
+
+    AllChangesWrapper(PostChanges changes, DoubleList nextDates, DoubleList nextValues) {
+        this.changes = Objects.requireNonNull(changes);
+        this.nextDates = Objects.requireNonNull(nextDates);
+        this.nextValues = Objects.requireNonNull(nextValues);
+        if (nextDates.size() != nextValues.size()) {
+            throw new IllegalArgumentException("nextDates and nextValues must have the same size");
+        }
+    }
+
     @Override
     public double postRate() {
         return changes.postRate();
@@ -65,15 +71,16 @@ record AllChangesWrapper(
     }
 
     private double getValueAfterYears(int years) {
-        return nextYearsValues.getDouble(years - 1);
+        return nextValues.getDouble(years - 1);
     }
 
-    private static final IntList YEARS_TO_SAMPLE = IntList.of(4, 5, 6);
+    private static final IntList DATES_TO_SAMPLE = IntList.of(4, 5, 6);
 
     @Override
     public double indexRegrowth() {
+        if (nextValues.isEmpty()) return Double.NaN;
         try {
-            var average = YEARS_TO_SAMPLE.intStream()
+            var average = DATES_TO_SAMPLE.intStream()
                     .mapToDouble(this::getValueAfterYears)
                     .average()
                     .orElseGet(() -> Double.NaN);
@@ -85,30 +92,25 @@ record AllChangesWrapper(
 
     @Override
     public double yearsToRegrowth(int percent) {
-        if (percent < 1 || percent > 100) {
-            throw new IllegalArgumentException("Percent must be between 1 and 100");
-        }
-        double target = percent / 100.0;
-        double threshold = previousValue * target;
-        var values = new DoubleArrayList(nextYearsValues);
-        values.addFirst(value());
-        for (int i = 0; i < values.size(); i++) {
-            var value = values.getDouble(i);
-            if (value >= threshold) {
-                return i;
+        if (percent < 1 || percent > 100) throw new IllegalArgumentException("Percent must be between 1 and 100");
+        if (nextValues.isEmpty()) return Double.NaN;
+        try {
+            double target = percent / 100.0;
+            double threshold = Math.abs(magnitude()) * target;
+            for (int i = 0; i < nextValues.size(); i++) {
+                var value = Math.abs(nextValues.getDouble(i) - value());
+                if (value >= threshold) {
+                    return nextDates.getDouble(i) - date();
+                }
             }
+            return Double.NaN;
+        } catch (IndexOutOfBoundsException e) {
+            return Double.NaN;
         }
-        throw new IllegalStateException("This should never happen. " +
-                "If this happens, there must be a bug in the computation of yearsToRegrowth, " +
-                "or the assignment of previousValue, or nextYearsValues.");
     }
 
     @Override
-    public AllChanges withRegrowth(double previousValue, List<Double> nextYearsValues) {
-        return new AllChangesWrapper(
-                changes,
-                previousValue,
-                doubleListOf(nextYearsValues)
-        );
+    public AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
+        return new AllChangesWrapper(changes, doubleListOf(nextDates), doubleListOf(nextValues));
     }
 }

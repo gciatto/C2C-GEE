@@ -12,12 +12,27 @@ public interface Changes {
 
     double value();
 
+    /**
+     * Difference between the value of the current vertex and the value of the previous vertex.
+     */
     double magnitude();
 
+    default boolean hasNegativeMagnitude() {
+        double magnitude = magnitude();
+        return !Double.isNaN(magnitude) && magnitude < 0;
+    }
+
+    /**
+     * Difference between the date of the current vertex and the date of the previous vertex.
+     */
     double duration();
 
     default double rate() {
         return magnitude() / duration();
+    }
+
+    default double previousValue() {
+        return value() - magnitude();
     }
 
     default DoubleList toDoubleList(double... prepend) {
@@ -26,7 +41,11 @@ public interface Changes {
 
     DoubleList toDoubleList(List<Double> prepend);
 
-    AllChanges withRegrowth(double previousValue, List<Double> nextYearsValues);
+    AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
+
+    default AllChanges dummyRegrowth() {
+        return withRegrowth(List.of(), List.of());
+    }
 
     static List<String> headers(String... prepend) {
         return headers(List.of(prepend));

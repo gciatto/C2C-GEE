@@ -4,8 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface PostChanges extends Changes {
+
+    /**
+     * Difference between the value of the next vertex and the value of the current vertex.
+     */
     double postMagnitude();
 
+    /**
+     * Difference between the date of the next vertex and the date of the current vertex.
+     */
     double postDuration();
 
     default double postRate() {

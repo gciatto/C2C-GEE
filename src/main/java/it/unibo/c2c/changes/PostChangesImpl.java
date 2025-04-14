@@ -35,11 +35,7 @@ record PostChangesImpl(
     }
 
     @Override
-    public AllChanges withRegrowth(double previousValue, List<Double> nextYearsValues) {
-        return new AllChangesWrapper(
-                this,
-                previousValue,
-                doubleListOf(nextYearsValues)
-        );
+    public AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
+        return new AllChangesWrapper(this, doubleListOf(nextDates), doubleListOf(nextValues));
     }
 }
