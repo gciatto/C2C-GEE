@@ -19,11 +19,6 @@ public interface RegrowthChanges extends Changes {
     @Override
     AllChanges withPost(double postMagnitude, double postDuration);
 
-    @Override
-    default AllChanges dummyPost() {
-        return withPost(Double.NaN, Double.NaN);
-    }
-
     static List<String> headers(String... prepend) {
         return headers(List.of(prepend));
     }

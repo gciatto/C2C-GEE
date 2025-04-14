@@ -136,7 +136,7 @@ public class Segmentator {
             if (change.hasNegativeMagnitude()) {
                 change = extendWithRegrowthMetrics(dates, values, change, currIndex);
             } else {
-                change = change.dummyRegrowth();
+                change = change.withoutRegrowth();
             }
         }
         return change;
@@ -166,7 +166,7 @@ public class Segmentator {
                     values.subList(currentIndex + 1, nextIndex)
             );
         } catch (ArrayIndexOutOfBoundsException e) {
-            return changes.dummyRegrowth();
+            return changes.withoutRegrowth();
         }
     }
 

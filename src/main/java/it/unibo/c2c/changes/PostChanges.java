@@ -33,7 +33,7 @@ public interface PostChanges extends Changes {
     AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
 
     @Override
-    default AllChanges dummyRegrowth() {
+    default AllChanges withoutRegrowth() {
         return withRegrowth(List.of(), List.of());
     }
 }

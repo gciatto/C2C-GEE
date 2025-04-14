@@ -43,14 +43,18 @@ public interface Changes {
 
     RegrowthChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
 
-    default RegrowthChanges dummyRegrowth() {
+    default RegrowthChanges withoutRegrowth() {
         return withRegrowth(List.of(), List.of());
     }
 
     PostChanges withPost(double postMagnitude, double postDuration);
 
-    default PostChanges dummyPost() {
-        return withPost(Double.NaN, Double.NaN);
+    default PostChanges asPostChanges() {
+        return (PostChanges) this;
+    }
+
+    default RegrowthChanges asRegrowthChanges() {
+        return (RegrowthChanges) this;
     }
 
     static List<String> headers(String... prepend) {
@@ -65,9 +69,5 @@ public interface Changes {
 
     static Changes of(double date, double value, double magnitude, double duration) {
         return new BaseChanges(date, value, magnitude, duration);
-    }
-
-    static Changes dummy(double date, double value) {
-        return of(date, value, Double.NaN, Double.NaN);
     }
 }

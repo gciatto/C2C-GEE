@@ -95,7 +95,7 @@ public class BottomupTest {
         List<DoubleList> values = expected.values();
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
-            PostChanges c = (PostChanges) actual.get(j);
+            PostChanges c = actual.get(j).asPostChanges();
             assertEquals(c.date(), expected.getColumn("year").getDouble(j));
             assertEquals(c.value(), expected.getColumn("index").getDouble(j));
             assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));

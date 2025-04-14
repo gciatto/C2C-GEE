@@ -8,8 +8,11 @@ import java.util.Objects;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
 
-record RegrowthChangesDecorator(Changes changes, DoubleList nextDates,
-                                DoubleList nextValues) implements RegrowthChanges {
+record RegrowthChangesDecorator(
+        Changes changes,
+        DoubleList nextDates,
+        DoubleList nextValues
+) implements RegrowthChanges {
 
     RegrowthChangesDecorator(Changes changes, DoubleList nextDates, DoubleList nextValues) {
         this.changes = Objects.requireNonNull(changes);
