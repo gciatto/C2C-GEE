@@ -1,6 +1,5 @@
 package it.unibo.c2c;
 
-import it.unibo.c2c.changes.AllChanges;
 import it.unibo.c2c.changes.Changes;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 
@@ -29,16 +28,10 @@ public class Segmentator {
         }
     }
 
-    public static List<Changes> segment(DoubleList dates, DoubleList values, double maxError, int maxSegm) {
-        return segment(dates, values, maxError, maxSegm, false);
-    }
-
     public static List<Changes> segment(
             DoubleList dates,
             DoubleList values,
-            double maxError,
-            int maxSegm,
-            boolean withRegrowthMetrics
+            C2cSolver.Args args
     ) {
         List<Segment> segments = new ArrayList<>();
         List<Double> mergeCost = new ArrayList<>();
@@ -55,7 +48,7 @@ public class Segmentator {
         // minimum merging cost
         int index = argMin(mergeCost);
         double min = mergeCost.get(index);
-        while (min < maxError || segments.size() > maxSegm) {
+        while (min < args.maxError || segments.size() > args.maxSegments) {
             // merge the adjacent segments with the smaller cost
             Segment segment = segments.get(index);
             Segment segment2 = segments.get(index + 1);
@@ -91,13 +84,13 @@ public class Segmentator {
                 leftIndex = segments.get(i - 1).start;
                 rightIndex = segments.get(i).finish;
             }
-            Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, withRegrowthMetrics);
+            Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
             segmented.add(c);
         }
         // add last change
         centralIndex = segments.getLast().finish;
         leftIndex = segments.getLast().start;
-        Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, withRegrowthMetrics);
+        Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
         segmented.add(c);
         return segmented;
     }
@@ -125,27 +118,21 @@ public class Segmentator {
             int preIndex,
             int currIndex,
             int postIndex,
-            boolean withRegrowthMetrics
+            C2cSolver.Args args
     ) {
         double currDate = dates.getDouble(currIndex);
         double currValue = values.getDouble(currIndex);
-        Changes change;
-        if (currIndex == 0) {
-            double postMagnitude = values.getDouble(postIndex) - currValue;
-            double postDuration = dates.getDouble(postIndex) - currDate;
-            change = Changes.postOnly(currDate, currValue, postMagnitude, postDuration);
-        } else if (currIndex == values.size() - 1) {
-            double magnitude = currValue - values.getDouble(preIndex);
-            double duration = currDate - dates.getDouble(preIndex);
-            change = Changes.pre(currDate, currValue, magnitude, duration);
-        } else {
-            double magnitude = currValue - values.getDouble(preIndex);
-            double duration = currDate - dates.getDouble(preIndex);
-            double postMagnitude = values.getDouble(postIndex) - currValue;
-            double postDuration = dates.getDouble(postIndex) - currDate;
-            change = Changes.post(currDate, currValue, magnitude, duration, postMagnitude, postDuration);
+        boolean isLast = currIndex == values.size() - 1;
+        boolean isFirst = currIndex == 0;
+        double magnitude = isFirst ? Double.NaN : currValue - values.getDouble(preIndex);
+        double duration = isFirst ? Double.NaN : currDate - dates.getDouble(preIndex);
+        Changes change = Changes.of(currDate, currValue, magnitude, duration);
+        if (args.postMetrics) {
+            double postMagnitude = isLast ? Double.NaN : values.getDouble(postIndex) - currValue;
+            double postDuration = isLast ? Double.NaN : dates.getDouble(postIndex) - currDate;
+            change = change.withPost(postMagnitude, postDuration);
         }
-        if (withRegrowthMetrics) {
+        if (args.regrowthMetrics) {
             if (change.hasNegativeMagnitude()) {
                 change = extendWithRegrowthMetrics(dates, values, change, currIndex);
             } else {
@@ -155,7 +142,7 @@ public class Segmentator {
         return change;
     }
 
-    private static AllChanges extendWithRegrowthMetrics(
+    private static Changes extendWithRegrowthMetrics(
             DoubleList dates,
             DoubleList values,
             Changes changes,

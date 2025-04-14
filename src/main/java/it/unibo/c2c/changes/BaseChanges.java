@@ -9,33 +9,32 @@ import static it.unibo.c2c.DoubleLists.doubleListOf;
 /**
  * Just a POD to record a change segment.
  */
-record PostChangesImpl(
+record BaseChanges(
         double date,
         double value,
         double magnitude,
-        double duration,
-        double postMagnitude,
-        double postDuration
-) implements PostChanges {
+        double duration
+) implements Changes {
 
     public double rate() {
         return magnitude / duration;
     }
 
-    public double postRate() {
-        return postMagnitude / postDuration;
-    }
-
     @Override
     public DoubleList toDoubleList(List<Double> prepend) {
         var result = doubleListOf(prepend);
-        var list = doubleListOf(date, value, magnitude, duration, rate(), postMagnitude, postDuration(), postRate());
+        var list = doubleListOf(date, value, magnitude, duration, rate());
         result.addAll(list);
         return result;
     }
 
     @Override
-    public AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
-        return new AllChangesWrapper(this, doubleListOf(nextDates), doubleListOf(nextValues));
+    public RegrowthChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
+        return new RegrowthChangesDecorator(this, doubleListOf(nextDates), doubleListOf(nextValues));
+    }
+
+    @Override
+    public PostChanges withPost(double postMagnitude, double postDuration) {
+        return new PostChangesDecorator(this, postMagnitude, postDuration);
     }
 }

@@ -29,23 +29,11 @@ public interface PostChanges extends Changes {
         return result;
     }
 
-    static PostChanges of(
-            double date,
-            double value,
-            double magnitude,
-            double duration,
-            double postMagnitude,
-            double postDuration
-    ) {
-        return new PostChangesImpl(date, value, magnitude, duration, postMagnitude, postDuration);
-    }
+    @Override
+    AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
 
-    static PostChanges postOnly(
-            double date,
-            double value,
-            double postMagnitude,
-            double postDuration
-    ) {
-        return of(date, value, Double.NaN, Double.NaN, postMagnitude, postDuration);
+    @Override
+    default AllChanges dummyRegrowth() {
+        return withRegrowth(List.of(), List.of());
     }
 }

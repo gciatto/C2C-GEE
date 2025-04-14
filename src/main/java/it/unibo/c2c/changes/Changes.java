@@ -41,10 +41,16 @@ public interface Changes {
 
     DoubleList toDoubleList(List<Double> prepend);
 
-    AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
+    RegrowthChanges withRegrowth(List<Double> nextDates, List<Double> nextValues);
 
-    default AllChanges dummyRegrowth() {
+    default RegrowthChanges dummyRegrowth() {
         return withRegrowth(List.of(), List.of());
+    }
+
+    PostChanges withPost(double postMagnitude, double postDuration);
+
+    default PostChanges dummyPost() {
+        return withPost(Double.NaN, Double.NaN);
     }
 
     static List<String> headers(String... prepend) {
@@ -57,15 +63,11 @@ public interface Changes {
         return result;
     }
 
-    static Changes pre(double date, double value, double magnitude, double duration) {
-        return PostChanges.of(date, value, magnitude, duration, Double.NaN, Double.NaN);
+    static Changes of(double date, double value, double magnitude, double duration) {
+        return new BaseChanges(date, value, magnitude, duration);
     }
 
-    static PostChanges post(double date, double value, double magnitude, double duration, double postMagnitude, double postDuration) {
-        return PostChanges.of(date, value, magnitude, duration, postMagnitude, postDuration);
-    }
-
-    static PostChanges postOnly(double date, double value, double postMagnitude, double postDuration) {
-        return PostChanges.postOnly(date, value, postMagnitude, postDuration);
+    static Changes dummy(double date, double value) {
+        return of(date, value, Double.NaN, Double.NaN);
     }
 }

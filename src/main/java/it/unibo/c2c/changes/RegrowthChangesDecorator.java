@@ -8,30 +8,16 @@ import java.util.Objects;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
 
-record AllChangesWrapper(PostChanges changes, DoubleList nextDates, DoubleList nextValues) implements AllChanges {
+record RegrowthChangesDecorator(Changes changes, DoubleList nextDates,
+                                DoubleList nextValues) implements RegrowthChanges {
 
-    AllChangesWrapper(PostChanges changes, DoubleList nextDates, DoubleList nextValues) {
+    RegrowthChangesDecorator(Changes changes, DoubleList nextDates, DoubleList nextValues) {
         this.changes = Objects.requireNonNull(changes);
         this.nextDates = Objects.requireNonNull(nextDates);
         this.nextValues = Objects.requireNonNull(nextValues);
         if (nextDates.size() != nextValues.size()) {
             throw new IllegalArgumentException("nextDates and nextValues must have the same size");
         }
-    }
-
-    @Override
-    public double postRate() {
-        return changes.postRate();
-    }
-
-    @Override
-    public double postDuration() {
-        return changes.postDuration();
-    }
-
-    @Override
-    public double postMagnitude() {
-        return changes.postMagnitude();
     }
 
     @Override
@@ -110,7 +96,18 @@ record AllChangesWrapper(PostChanges changes, DoubleList nextDates, DoubleList n
     }
 
     @Override
-    public AllChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
-        return new AllChangesWrapper(changes, doubleListOf(nextDates), doubleListOf(nextValues));
+    public RegrowthChanges withRegrowth(List<Double> nextDates, List<Double> nextValues) {
+        return new RegrowthChangesDecorator(changes, doubleListOf(nextDates), doubleListOf(nextValues));
+    }
+
+    @Override
+    public AllChanges withPost(double postMagnitude, double postDuration) {
+        return new AllChangesDecorator(
+                new RegrowthChangesDecorator(
+                        changes.withPost(postMagnitude, postDuration),
+                        nextDates,
+                        nextValues
+                )
+        );
     }
 }

@@ -50,7 +50,7 @@ public class C2cSolver {
 
         @Doc(help = "Whether include post metrics in the output (postMagnitude, postDuration, postRate).")
         @Optional
-        public boolean postMetrics = false;
+        public boolean postMetrics = true;
 
         @Doc(help = "Whether include regrowth metrics in the output (indexRegrowth, recoveryIndicator, y2r60, y2r80, y2r100).")
         @Optional
@@ -101,7 +101,7 @@ public class C2cSolver {
             despikeTimeLine(values, args.spikesTolerance);
         }
         // Start segmentation.
-        var result = Segmentator.segment(dates, values, args.maxError, args.maxSegments, args.regrowthMetrics);
+        var result = Segmentator.segment(dates, values, args);
         if (args.negativeMagnitudeOnly) {
             filterOutNonNegativeChanges(result);
         }
@@ -113,7 +113,10 @@ public class C2cSolver {
     }
 
     private static List<String> headers(C2cSolver.Args args) {
-        var result = PostChanges.headers(Changes.headers("id"));
+        var result = Changes.headers("id");
+        if (args.postMetrics) {
+            result = PostChanges.headers(result);
+        }
         if (args.regrowthMetrics) {
             result = RegrowthChanges.headers(result);
         }

@@ -16,8 +16,12 @@ public interface RegrowthChanges extends Changes {
         return yearsToRegrowth(100);
     }
 
-    static List<String> defaultHeaders() {
-        return List.of("indexRegrowth", "recoveryIndicator", "y2r60", "y2r80", "y2r100");
+    @Override
+    AllChanges withPost(double postMagnitude, double postDuration);
+
+    @Override
+    default AllChanges dummyPost() {
+        return withPost(Double.NaN, Double.NaN);
     }
 
     static List<String> headers(String... prepend) {
