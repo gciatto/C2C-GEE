@@ -63,7 +63,7 @@ public interface Changes {
 
     static List<String> headers(List<String> prepend) {
         var result = new ArrayList<>(prepend);
-        result.addAll(List.of("year", "index", "magnitude", "duration", "rate"));
+        result.addAll(List.of("year", "value", "magnitude", "duration", "rate"));
         return result;
     }
 

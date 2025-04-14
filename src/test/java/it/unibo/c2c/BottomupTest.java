@@ -97,7 +97,7 @@ public class BottomupTest {
         for (int j = 0; j < actual.size(); j++) {
             PostChanges c = actual.get(j).asPostChanges();
             assertEquals(c.date(), expected.getColumn("year").getDouble(j));
-            assertEquals(c.value(), expected.getColumn("index").getDouble(j));
+            assertEquals(c.value(), expected.getColumn("value").getDouble(j));
             assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));
             assertEquals(c.magnitude(), expected.getColumn("magnitude").getDouble(j));
             assertEquals(c.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j));

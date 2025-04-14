@@ -113,7 +113,7 @@ public class C2cSolver {
     }
 
     private static List<String> headers(C2cSolver.Args args) {
-        var result = Changes.headers("id");
+        var result = Changes.headers("id", "index");
         if (args.postMetrics) {
             result = PostChanges.headers(result);
         }
@@ -128,19 +128,20 @@ public class C2cSolver {
         Csv result = Csv.empty(headers);
         var years = inputs.getHeadersAsDoubles();
         for (int i = 0; i < inputs.getRowsCount(); i++) {
-            DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
+            DoubleList timeline = inputs.getRow(i);
+            double id = timeline.removeFirst();
             List<Changes> changes = c2cBottomUp(years, timeline, args);
             if (changes != null) {
-                result.addRows(changesToCsv(i, changes, headers));
+                result.addRows(changesToCsv(id, i, changes, headers));
             }
         }
         return result;
     }
 
-    private Csv changesToCsv(double id, List<Changes> changes, List<String> headers) {
+    private Csv changesToCsv(double id, double index, List<Changes> changes, List<String> headers) {
         Csv result = Csv.empty(headers);
         for (Changes change : changes) {
-            DoubleList row = change.toDoubleList(id);
+            DoubleList row = change.toDoubleList(id, index);
             result.addRow(row);
         }
         return result;
