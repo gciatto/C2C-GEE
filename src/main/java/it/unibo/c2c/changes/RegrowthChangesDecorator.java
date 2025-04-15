@@ -60,7 +60,11 @@ record RegrowthChangesDecorator(
     }
 
     private double getValueAfterYears(int years) {
-        return nextValues.getDouble(years - 1);
+        try {
+            return nextValues.getDouble(years - 1);
+        } catch (IndexOutOfBoundsException e) {
+            return 0;
+        }
     }
 
     private static final IntList DATES_TO_SAMPLE = IntList.of(4, 5, 6);
@@ -71,6 +75,7 @@ record RegrowthChangesDecorator(
         try {
             var average = DATES_TO_SAMPLE.intStream()
                     .mapToDouble(this::getValueAfterYears)
+                    .filter(i -> i != 0)
                     .average()
                     .orElseGet(() -> Double.NaN);
             return average - value();
@@ -85,10 +90,10 @@ record RegrowthChangesDecorator(
         if (nextValues.isEmpty()) return Double.NaN;
         try {
             double target = percent / 100.0;
-            double threshold = Math.abs(magnitude()) * target;
+            double threshold = (value() - magnitude()) * target;
             for (int i = 0; i < nextValues.size(); i++) {
-                var value = Math.abs(nextValues.getDouble(i) - value());
-                if (value >= threshold) {
+                var nextValue = nextValues.getDouble(i);
+                if (nextValue >= threshold) {
                     return nextDates.getDouble(i) - date();
                 }
             }
