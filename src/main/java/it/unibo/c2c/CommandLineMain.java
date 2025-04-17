@@ -14,21 +14,28 @@ public class CommandLineMain {
             if (args.containsKey(field.getName())) {
                 Class<?> type = field.getType();
                 Object value = args.get(field.getName());
-                if (type == int.class) {
-                    value = Integer.parseInt((String) value);
-                } else if (type == boolean.class) {
-                    value = Boolean.parseBoolean((String) value);
-                } else if (type == double.class) {
-                    value = Double.parseDouble((String) value);
-                } else if (type == String.class) {
-                    // No conversion needed
-                } else {
-                    throw new IllegalArgumentException("Unsupported type: " + type);
-                }
                 try {
+                    if (type == int.class) {
+                        value = Integer.parseInt((String) value);
+                    } else if (type == boolean.class) {
+                        value = Boolean.parseBoolean((String) value);
+                    } else if (type == double.class) {
+                        value = Double.parseDouble((String) value);
+                    } else if (type == String.class) {
+                        // No conversion needed
+                    } else {
+                        throw new IllegalArgumentException("Unsupported type: " + type);
+                    }
                     field.set(result, value);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                        "Error while parsing value `%s` as %s for property %s".formatted(
+                            value, 
+                            field.getType().getSimpleName(),
+                            field.getName()
+                        ), 
+                        e
+                    );
                 }
             }
         }

@@ -46,14 +46,10 @@ application {
 
 def inputFile = file("src/test/resources/it/unibo/c2c/input.csv")
 
-def propertyIsTrue(name) {
-    return project.hasProperty(name) && project.property(name).toString().toBoolean()
-}
-
-def properties = ['revertBand', 'negativeMagnitudeOnly', 'regrowthMetrics', 'postMetrics']
+def properties = ['revertBand', 'negativeMagnitudeOnly', 'regrowthMetrics', 'postMetrics', 'infill', 'spikesTolerance']
 
 tasks.getByName("run") {
-    args = properties.collect { "--$it=${propertyIsTrue(it)}" } + [inputFile]
+    args = properties.collect { "--$it=${project.property(it)}" } + [inputFile]
 }
 
 properties.each { arg ->
