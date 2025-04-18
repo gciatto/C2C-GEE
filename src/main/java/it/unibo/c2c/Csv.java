@@ -131,6 +131,9 @@ public record Csv(List<String> headers, List<DoubleList> values) {
      * Get a column by name.
      */
     public DoubleList getColumn(String name) {
+        if (!headers.contains(name)) {
+            throw new IllegalArgumentException("Column %s not found in headers %s".formatted(name, headers));
+        }
         return values.get(headers.indexOf(name));
     }
 

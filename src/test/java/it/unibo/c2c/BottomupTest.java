@@ -2,6 +2,7 @@ package it.unibo.c2c;
 
 import it.unibo.c2c.changes.Changes;
 import it.unibo.c2c.changes.PostChanges;
+import it.unibo.c2c.changes.RegrowthChanges;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -23,8 +24,9 @@ public class BottomupTest {
     private static final String EXPECTED_FILE_DEFAULT = "output-default.csv";
     private static final String EXPECTED_FILE_REVERT = "output-reverted.csv";
     private static final String EXPECTED_FILE_FILTER = "output-filtered.csv";
+    private static final String EXPECTED_FILE_FILTERED_REGROWTH = "output-regrowth-negonly.csv";
 
-    private static Csv inputs, expectedDefault, expectedRevert, expectedFilter;
+    private static Csv inputs, expectedDefault, expectedRevert, expectedFilter, expectedFilteredRegrowth;
 
     @Rule
     public TestName testName = new TestName();
@@ -39,6 +41,7 @@ public class BottomupTest {
         expectedDefault = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_DEFAULT));
         expectedRevert = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_REVERT));
         expectedFilter = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTER));
+        expectedFilteredRegrowth = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTERED_REGROWTH));
     }
 
     @Test
@@ -60,11 +63,24 @@ public class BottomupTest {
         testC2cBottomUpWithArgs(args, expectedFilter);
     }
 
+    @Test
+    public void testC2cBottomUpWithNegativeMagnitudeOnlyAndRegrowMetrics() {
+        var args = new C2cSolver.Args();
+        args.negativeMagnitudeOnly = true;
+        args.regrowthMetrics = true;
+        args.postMetrics = false;
+        testC2cBottomUpWithArgs(args, expectedFilteredRegrowth);
+    }
+
     private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected) {
+        // There are 3 inputs that don't have enough points.
+        testC2cBottomUpWithArgs(args, expected, 3);
+    }
+
+    private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected, int expectedNullCount) {
         var dates = inputs.getHeadersAsDoubles();
         //  Split expectedById results file by plot ID.
         Map<Double, Csv> expectedById = expected.groupByColumn("id");
-//        assertEquals(inputs.getRowsCount(), expectedById.size());
         // Apply the Main function on each timeLine.
         int nullCount = 0;
         C2cSolver solver = new C2cSolver(args);
@@ -78,13 +94,12 @@ public class BottomupTest {
                 verify(i, result, expectedCsv);
             } else {
                 nullCount++;
-                System.out.printf("Null result for row: %d\n", i);
+                System.out.printf("[%s] Null result for row: %d\n", testName.getMethodName(), i);
                 assertFalse(expectedById.containsKey(id));
                 verify(i, List.of(), expectedCsv);
             }
         }
-        // There are 3 inputs that don't have enough points.
-        assertEquals(3, nullCount);
+        assertEquals(expectedNullCount, nullCount);
     }
 
     /**
@@ -95,15 +110,24 @@ public class BottomupTest {
         List<DoubleList> values = expected.values();
         assertEquals(actual.size(), values.getFirst().size());
         for (int j = 0; j < actual.size(); j++) {
-            PostChanges c = actual.get(j).asPostChanges();
+            Changes c = actual.get(j);
             assertEquals(c.date(), expected.getColumn("year").getDouble(j));
             assertEquals(c.value(), expected.getColumn("value").getDouble(j));
             assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));
             assertEquals(c.magnitude(), expected.getColumn("magnitude").getDouble(j));
-            assertEquals(c.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j));
-            assertEquals(c.postDuration(), expected.getColumn("postDuration").getDouble(j));
-            assertEquals(c.postRate(), expected.getColumn("postRate").getDouble(j));
-            assertEquals(c.rate(), expected.getColumn("rate").getDouble(j));
+            if (c instanceof PostChanges pc) {
+                assertEquals(pc.postMagnitude(), expected.getColumn("postMagnitude").getDouble(j));
+                assertEquals(pc.postDuration(), expected.getColumn("postDuration").getDouble(j));
+                assertEquals(pc.postRate(), expected.getColumn("postRate").getDouble(j));
+                assertEquals(pc.rate(), expected.getColumn("rate").getDouble(j));
+            }
+            if (c instanceof RegrowthChanges rc) {
+                assertEquals(rc.indexRegrowth(), expected.getColumn("indexRegrowth").getDouble(j));
+                assertEquals(rc.recoveryIndicator(), expected.getColumn("recoveryIndicator").getDouble(j));
+                assertEquals(rc.yearsToRegrowth(60), expected.getColumn("y2r60").getDouble(j));
+                assertEquals(rc.yearsToRegrowth(80), expected.getColumn("y2r80").getDouble(j));
+                assertEquals(rc.yearsToFullRegrowth(), expected.getColumn("y2r100").getDouble(j));
+            }
         }
     }
 
