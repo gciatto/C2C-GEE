@@ -56,6 +56,26 @@ public class C2cSolver {
         @Optional
         public boolean regrowthMetrics = false;
 
+        @Doc(help = "Whether to interpolate the time series before computing metrics.")
+        @Optional
+        public boolean interpolate = false;
+
+        public Args copy() {
+            var args = new Args();
+            args.maxError = maxError;
+            args.maxSegments = maxSegments;
+            args.startYear = startYear;
+            args.endYear = endYear;
+            args.infill = infill;
+            args.spikesTolerance = spikesTolerance;
+            args.revertBand = revertBand;
+            args.negativeMagnitudeOnly = negativeMagnitudeOnly;
+            args.postMetrics = postMetrics;
+            args.regrowthMetrics = regrowthMetrics;
+            args.interpolate = interpolate;
+            return args;
+        }
+
         @Override
         public String toString() {
             return "maxError=" + maxError +
@@ -67,7 +87,8 @@ public class C2cSolver {
                     ", revertBand=" + revertBand +
                     ", negativeMagnitudeOnly=" + negativeMagnitudeOnly +
                     ", postMetrics=" + postMetrics +
-                    ", regrowthMetrics=" + regrowthMetrics;
+                    ", regrowthMetrics=" + regrowthMetrics +
+                    ", interpolate=" + interpolate;
         }
     }
 
@@ -100,12 +121,46 @@ public class C2cSolver {
         if (args.spikesTolerance < 1) {
             despikeTimeLine(values, args.spikesTolerance);
         }
-        // Start segmentation.
-        var result = Segmentator.segment(dates, values, args);
-        if (args.negativeMagnitudeOnly) {
-            filterOutNonNegativeChanges(result);
+        List<Changes> vertices;
+        if (args.interpolate) {
+            var simpleArgs = args.copy();
+            simpleArgs.regrowthMetrics = false;
+            // Compute segmentation with simple args (not wasting time to compute additional metrics).
+            vertices = Segmentator.segment(dates, values, simpleArgs);
+            // Interpolate the time series w.r.t. to the vertices.
+            interpolate(dates, values, vertices);
+            // Re-compute segmentation with the original args.
+            Segmentator.extendAllWithRegrowthMetrics(vertices, dates, values);
+        } else {
+            // Start segmentation.
+            vertices = Segmentator.segment(dates, values, args);
         }
-        return result;
+        if (args.negativeMagnitudeOnly) {
+            filterOutNonNegativeChanges(vertices);
+        }
+        return vertices;
+    }
+
+    private void interpolate(DoubleList dates, DoubleList values, List<Changes> vertices) {
+        for (int vertexIndex = 0; vertexIndex < vertices.size() - 1; vertexIndex++) {
+            Changes vertex = vertices.get(vertexIndex);
+            Changes nextVertex = vertices.get(vertexIndex + 1);
+            double x1 = vertex.date();
+            double x2 = nextVertex.date();
+            double y1 = vertex.value();
+            double y2 = nextVertex.value();
+            for (int i = 0; i < dates.size(); i++) {
+                double x = dates.getDouble(i);
+                if (x <= x1) {
+                    continue;
+                } else if (x >= x2) {
+                    break;
+                } else {
+                    double y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+                    values.set(i, y);
+                }
+            }
+        }
     }
 
     public Csv c2cBottomUp(Csv inputs) {

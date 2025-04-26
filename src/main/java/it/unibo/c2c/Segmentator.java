@@ -1,6 +1,7 @@
 package it.unibo.c2c;
 
 import it.unibo.c2c.changes.Changes;
+import it.unibo.c2c.changes.RegrowthChanges;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 
 import java.util.ArrayList;
@@ -140,6 +141,26 @@ public class Segmentator {
             }
         }
         return change;
+    }
+
+    static void extendAllWithRegrowthMetrics(
+            List<Changes> changes,
+            DoubleList dates,
+            DoubleList values
+    ) {
+        for (int i = 0, j = 0; i < dates.size() && j < changes.size(); i++) {
+            var currentDate = dates.getDouble(i);
+            var currentChange = changes.get(j);
+            if (currentDate == currentChange.date()) {
+                   currentChange = extendWithRegrowthMetrics(
+                            dates,
+                            values,
+                            currentChange,
+                            i
+                    );
+                   changes.set(j++, currentChange);
+            }
+        }
     }
 
     private static Changes extendWithRegrowthMetrics(
