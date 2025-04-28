@@ -6,7 +6,6 @@ import static java.util.Arrays.stream;
 
 import com.google.common.base.Splitter;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -71,9 +70,9 @@ public record Csv(List<String> headers, List<DoubleList> values) {
       List<DoubleList> values = new ArrayList<>();
       String line;
       while ((line = reader.readLine()) != null) {
-        String[] parts = line.split(",");
+        var parts = line.split(",");
         headers.add(parts[0]);
-        double[] doubles = stream(parts).skip(1).mapToDouble(Double::parseDouble).toArray();
+        var doubles = stream(parts).skip(1).mapToDouble(Double::parseDouble).toArray();
         values.add(doubleListOf(doubles));
       }
       return new Csv(headers, values);
@@ -85,23 +84,23 @@ public record Csv(List<String> headers, List<DoubleList> values) {
   /** Regular column-oriented file with a header line on top. */
   public static Csv vertical(InputStream stream) {
     try (var reader = new BufferedReader(new InputStreamReader(stream, UTF_8))) {
-      String line = reader.readLine().trim();
+      var line = reader.readLine().trim();
       while (line.startsWith("#")) {
         line = reader.readLine().trim();
       }
-      List<String> headers = Arrays.asList(line.split(","));
+      var headers = Arrays.asList(line.split(","));
       List<DoubleList> values = new ArrayList<>();
-      for (int i = 0; i < headers.size(); i++) {
+      for (var i = 0; i < headers.size(); i++) {
         values.add(doubleListOf());
       }
-      int lineNumber = 1;
+      var lineNumber = 1;
       while ((line = reader.readLine()) != null) {
         line = line.trim();
         if (line.startsWith("#")) {
           continue;
         }
-        List<String> parts = Splitter.on(',').splitToList(line);
-        for (int i = 0; i < parts.size(); i++) {
+        var parts = Splitter.on(',').splitToList(line);
+        for (var i = 0; i < parts.size(); i++) {
           try {
             values.get(i).add(Double.parseDouble(parts.get(i)));
           } catch (RuntimeException e) {
@@ -152,8 +151,8 @@ public record Csv(List<String> headers, List<DoubleList> values) {
 
   /** Get one row of the CSV as a DoubleList, skipping the first `skip` elements. */
   public DoubleList getRow(int row, int skip) {
-    DoubleList result = doubleListOf();
-    for (int col = skip; col < values.size(); col++) {
+    var result = doubleListOf();
+    for (var col = skip; col < values.size(); col++) {
       result.add(values.get(col).getDouble(row));
     }
     return result;
@@ -169,14 +168,14 @@ public record Csv(List<String> headers, List<DoubleList> values) {
    * rows.
    */
   public Map<Double, Csv> groupByColumn(String id) {
-    DoubleList groups = doubleListOf(getColumn(id).doubleStream().distinct().sorted());
+    var groups = doubleListOf(getColumn(id).doubleStream().distinct().sorted());
     var result = new LinkedHashMap<Double, Csv>();
-    for (int i = 0; i < groups.size(); i++) {
+    for (var i = 0; i < groups.size(); i++) {
       result.put(groups.getDouble(i), empty(headers));
     }
-    for (int i = 0; i < getRowsCount(); i++) {
-      DoubleList row = doubleListOf(getRow(i));
-      double group = row.getDouble(headers.indexOf(id));
+    for (var i = 0; i < getRowsCount(); i++) {
+      var row = doubleListOf(getRow(i));
+      var group = row.getDouble(headers.indexOf(id));
       result.get(group).addRow(row);
     }
     return result;
@@ -188,13 +187,13 @@ public record Csv(List<String> headers, List<DoubleList> values) {
           "Row size (%s) does not match number of columns (%s)"
               .formatted(row.size(), getColumnsCount()));
     }
-    for (int i = 0; i < row.size(); i++) {
+    for (var i = 0; i < row.size(); i++) {
       values.get(i).add(row.getDouble(i));
     }
   }
 
   public void addRows(Csv other) {
-    for (int i = 0; i < other.getRowsCount(); i++) {
+    for (var i = 0; i < other.getRowsCount(); i++) {
       addRow(other.getRow(i));
     }
   }
@@ -202,9 +201,9 @@ public record Csv(List<String> headers, List<DoubleList> values) {
   /** Extract a subset of rows as if it were another Csv */
   public Csv subset(int start, int end) {
     List<DoubleList> copies = new ArrayList<>();
-    int len = end - start + 1;
-    for (DoubleList d : values) {
-      double[] copy = new double[len];
+    var len = end - start + 1;
+    for (var d : values) {
+      var copy = new double[len];
       d.getElements(start, copy, 0, len);
       copies.add(doubleListOf(copy));
     }
@@ -212,11 +211,11 @@ public record Csv(List<String> headers, List<DoubleList> values) {
   }
 
   public void writeTo(Writer writer) throws IOException {
-    BufferedWriter w = new BufferedWriter(writer);
+    var w = new BufferedWriter(writer);
     w.write(String.join(", ", headers));
     w.newLine();
     w.flush();
-    for (int i = 0; i < getRowsCount(); i++) {
+    for (var i = 0; i < getRowsCount(); i++) {
       var row = getRow(i);
       w.write(row.doubleStream().mapToObj(DECIMAL_FORMAT::format).collect(Collectors.joining(",")));
       w.newLine();
@@ -225,7 +224,7 @@ public record Csv(List<String> headers, List<DoubleList> values) {
   }
 
   public String toCsvString() {
-    try (StringWriter sw = new StringWriter()) {
+    try (var sw = new StringWriter()) {
       writeTo(sw);
       return sw.toString();
     } catch (IOException e) {
@@ -234,7 +233,7 @@ public record Csv(List<String> headers, List<DoubleList> values) {
   }
 
   public void print() {
-    OutputStreamWriter writer = new OutputStreamWriter(System.out, UTF_8);
+    var writer = new OutputStreamWriter(System.out, UTF_8);
     try {
       writeTo(writer);
       writer.flush();

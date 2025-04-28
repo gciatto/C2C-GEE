@@ -2,7 +2,6 @@ package it.unibo.c2c;
 
 import static it.unibo.c2c.DoubleLists.doubleListOf;
 
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,15 +11,15 @@ public class TransformOutput {
   private static final String TARGET_DIR = "src/test/resources/it/unibo/c2c";
 
   public static void main(String[] args) throws IOException {
-    Csv input = Csv.vertical(TransformOutput.class.getResourceAsStream(DEFAULT_OUTPUT_FILE));
-    Csv output = Csv.empty(input.headers());
+    var input = Csv.vertical(TransformOutput.class.getResourceAsStream(DEFAULT_OUTPUT_FILE));
+    var output = Csv.empty(input.headers());
     if (args.length == 0) {
       throw new IllegalArgumentException(
           "Please provide a task name as a command-line argument. "
               + "Available tasks: revert, filter");
     }
     var task = args[0].trim().toLowerCase();
-    String newOutputFileName = "output-%sed.csv".formatted(task);
+    var newOutputFileName = "output-%sed.csv".formatted(task);
     switch (task) {
       case "revert" -> revertBand(input, output);
       case "filter" -> negativeMagnitudeOnly(input, output);
@@ -37,23 +36,24 @@ public class TransformOutput {
 
   private static void doNothing(Csv input, Csv output) {
     // No transformation needed
-    for (int i = 0; i < input.getRowsCount(); i++) {
+    for (var i = 0; i < input.getRowsCount(); i++) {
       output.addRow(input.getRow(i));
     }
   }
 
   private static void revertBand(Csv input, Csv output) {
     // # +id, +year, -index, -magnitude, +duration, -rate, -postMagnitude, +postDuration, -postRate
-    for (int i = 0; i < input.getRowsCount(); i++) {
-      DoubleList row = doubleListOf(input.getRow(i));
-      int[] fieldsToInvert = {
-        input.headers().indexOf("index"),
-        input.headers().indexOf("magnitude"),
-        input.headers().indexOf("rate"),
-        input.headers().indexOf("postMagnitude"),
-        input.headers().indexOf("postRate"),
-      };
-      for (int field : fieldsToInvert) {
+    for (var i = 0; i < input.getRowsCount(); i++) {
+      var row = doubleListOf(input.getRow(i));
+      var fieldsToInvert =
+          new int[] {
+            input.headers().indexOf("index"),
+            input.headers().indexOf("magnitude"),
+            input.headers().indexOf("rate"),
+            input.headers().indexOf("postMagnitude"),
+            input.headers().indexOf("postRate"),
+          };
+      for (var field : fieldsToInvert) {
         row.set(field, -row.getDouble(field));
       }
       output.addRow(row);
@@ -61,10 +61,10 @@ public class TransformOutput {
   }
 
   private static void negativeMagnitudeOnly(Csv input, Csv output) {
-    for (int i = 0; i < input.getRowsCount(); i++) {
-      DoubleList row = doubleListOf(input.getRow(i));
-      int magnitudeIndex = input.headers().indexOf("magnitude");
-      double magnitudeValue = row.getDouble(magnitudeIndex);
+    for (var i = 0; i < input.getRowsCount(); i++) {
+      var row = doubleListOf(input.getRow(i));
+      var magnitudeIndex = input.headers().indexOf("magnitude");
+      var magnitudeValue = row.getDouble(magnitudeIndex);
       if (!Double.isNaN(magnitudeValue) && magnitudeValue < 0) {
         output.addRow(row);
       }

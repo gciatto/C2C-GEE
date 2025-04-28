@@ -170,21 +170,21 @@ public class C2cSolver {
   }
 
   private void interpolate(DoubleList dates, DoubleList values, List<Changes> vertices) {
-    for (int vertexIndex = 0; vertexIndex < vertices.size() - 1; vertexIndex++) {
-      Changes vertex = vertices.get(vertexIndex);
-      Changes nextVertex = vertices.get(vertexIndex + 1);
-      double x1 = vertex.date();
-      double x2 = nextVertex.date();
-      double y1 = vertex.value();
-      double y2 = nextVertex.value();
-      for (int i = 0; i < dates.size(); i++) {
-        double x = dates.getDouble(i);
+    for (var vertexIndex = 0; vertexIndex < vertices.size() - 1; vertexIndex++) {
+      var vertex = vertices.get(vertexIndex);
+      var nextVertex = vertices.get(vertexIndex + 1);
+      var x1 = vertex.date();
+      var x2 = nextVertex.date();
+      var y1 = vertex.value();
+      var y2 = nextVertex.value();
+      for (var i = 0; i < dates.size(); i++) {
+        var x = dates.getDouble(i);
         if (x <= x1) {
           continue;
         } else if (x >= x2) {
           break;
         } else {
-          double y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+          var y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
           values.set(i, y);
         }
       }
@@ -207,13 +207,13 @@ public class C2cSolver {
   }
 
   public Csv c2cBottomUp(Csv inputs, C2cSolver.Args args) {
-    List<String> headers = headers(args);
-    Csv result = Csv.empty(headers);
+    var headers = headers(args);
+    var result = Csv.empty(headers);
     var years = inputs.getHeadersAsDoubles();
-    for (int i = 0; i < inputs.getRowsCount(); i++) {
-      DoubleList timeline = inputs.getRow(i);
+    for (var i = 0; i < inputs.getRowsCount(); i++) {
+      var timeline = inputs.getRow(i);
       double id = timeline.removeFirst();
-      List<Changes> changes = c2cBottomUp(years, timeline, args);
+      var changes = c2cBottomUp(years, timeline, args);
       if (args.interpolate) {
         args.log(
             "Interpolate line %d, %s",
@@ -228,16 +228,16 @@ public class C2cSolver {
   }
 
   private Csv changesToCsv(double id, double index, List<Changes> changes, List<String> headers) {
-    Csv result = Csv.empty(headers);
-    for (Changes change : changes) {
-      DoubleList row = change.toDoubleList(id, index);
+    var result = Csv.empty(headers);
+    for (var change : changes) {
+      var row = change.toDoubleList(id, index);
       result.addRow(row);
     }
     return result;
   }
 
   private static void revert(DoubleList values) {
-    for (int i = 0; i < values.size(); i++) {
+    for (var i = 0; i < values.size(); i++) {
       values.set(i, -values.getDouble(i));
     }
   }
@@ -248,15 +248,15 @@ public class C2cSolver {
 
   private static void fillValues(DoubleList values) {
     // Infill missing data
-    for (int i = 0; i < values.size(); i++) {
+    for (var i = 0; i < values.size(); i++) {
       if (values.getDouble(i) != 0) {
         continue;
       }
       // Find the first two valid observations in timeLine before and after i
-      int left1 = findValid(values, i, -1);
-      int left2 = findValid(values, left1, -1);
-      int right1 = findValid(values, i, 1);
-      int right2 = findValid(values, right1, 1);
+      var left1 = findValid(values, i, -1);
+      var left2 = findValid(values, left1, -1);
+      var right1 = findValid(values, i, 1);
+      var right2 = findValid(values, right1, 1);
       if (left2 == -1) {
         values.set(i, values.getDouble(right1));
       } else if (right2 == -1) {
@@ -266,8 +266,8 @@ public class C2cSolver {
           values.set(i, values.getDouble(left1));
         }
       } else {
-        double leftDif = Math.abs(values.getDouble(left1) - values.getDouble(left2));
-        double rightDif = Math.abs(values.getDouble(right1) - values.getDouble(right2));
+        var leftDif = Math.abs(values.getDouble(left1) - values.getDouble(left2));
+        var rightDif = Math.abs(values.getDouble(right1) - values.getDouble(right2));
         // Fill using value with smaller difference
         if (leftDif < rightDif) {
           values.set(i, values.getDouble(left1));
@@ -276,12 +276,12 @@ public class C2cSolver {
         }
       }
     }
-    int size = values.size();
-    double lastValue = values.getDouble(size - 1);
-    double lastValueL = values.getDouble(size - 2);
-    double lastValueLL = values.getDouble(size - 3);
-    double lastDif = Math.abs(lastValue - lastValueL);
-    double secondLastDif = Math.abs(lastValueL - lastValueLL);
+    var size = values.size();
+    var lastValue = values.getDouble(size - 1);
+    var lastValueL = values.getDouble(size - 2);
+    var lastValueLL = values.getDouble(size - 3);
+    var lastDif = Math.abs(lastValue - lastValueL);
+    var secondLastDif = Math.abs(lastValueL - lastValueLL);
     if (lastDif >= secondLastDif) {
       values.set(size - 1, lastValueL);
     }
@@ -292,8 +292,8 @@ public class C2cSolver {
     if (start == -1) {
       return -1;
     }
-    int limit = dir == 1 ? list.size() : -1;
-    for (int i = start + dir; i != limit; i += dir) {
+    var limit = dir == 1 ? list.size() : -1;
+    for (var i = start + dir; i != limit; i += dir) {
       if (list.getDouble(i) != 0) {
         return i;
       }
@@ -302,14 +302,14 @@ public class C2cSolver {
   }
 
   private static void despikeTimeLine(DoubleList values, double spikesTolerance) {
-    for (int i = 1; i < values.size() - 1; i++) {
-      double left = values.getDouble(i - 1);
-      double center = values.getDouble(i);
-      double right = values.getDouble(i + 1);
-      double fitted = (left + right) / 2;
-      double delta = Math.abs(left - right);
-      double spikeValue = Math.abs(fitted - center);
-      double despikeProportion = delta / spikeValue;
+    for (var i = 1; i < values.size() - 1; i++) {
+      var left = values.getDouble(i - 1);
+      var center = values.getDouble(i);
+      var right = values.getDouble(i + 1);
+      var fitted = (left + right) / 2;
+      var delta = Math.abs(left - right);
+      var spikeValue = Math.abs(fitted - center);
+      var despikeProportion = delta / spikeValue;
       //      despike conditions
       //      #1# The value of the spike is greater than 100
       //      #2# The difference between spectral values on either side of the spike

@@ -85,9 +85,9 @@ record RegrowthChangesDecorator(Changes changes, DoubleList nextDates, DoubleLis
       throw new IllegalArgumentException("Percent must be between 1 and 100");
     if (nextValues.isEmpty()) return Double.NaN;
     try {
-      double target = percent / 100.0;
-      double threshold = (value() - magnitude()) * target;
-      for (int i = 0; i < nextValues.size(); i++) {
+      var target = percent / 100.0;
+      var threshold = (value() - magnitude()) * target;
+      for (var i = 0; i < nextValues.size(); i++) {
         var nextValue = nextValues.getDouble(i);
         if (nextValue >= threshold) {
           return nextDates.getDouble(i) - date();

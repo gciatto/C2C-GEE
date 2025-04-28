@@ -15,7 +15,7 @@ public interface Changes {
   double magnitude();
 
   default boolean hasNegativeMagnitude() {
-    double magnitude = magnitude();
+    var magnitude = magnitude();
     return !Double.isNaN(magnitude) && magnitude < 0;
   }
 

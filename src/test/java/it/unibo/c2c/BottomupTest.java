@@ -5,9 +5,7 @@ import static org.junit.Assert.assertFalse;
 import it.unibo.c2c.changes.Changes;
 import it.unibo.c2c.changes.PostChanges;
 import it.unibo.c2c.changes.RegrowthChanges;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -99,16 +97,16 @@ public class BottomupTest {
   private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected, int expectedNullCount) {
     var dates = inputs.getHeadersAsDoubles();
     //  Split expectedById results file by plot ID.
-    Map<Double, Csv> expectedById = expected.groupByColumn("id");
+    var expectedById = expected.groupByColumn("id");
     // Apply the Main function on each timeLine.
-    int nullCount = 0;
-    C2cSolver solver = new C2cSolver(args);
-    for (int i = 0; i < inputs.getRowsCount(); i++) {
+    var nullCount = 0;
+    var solver = new C2cSolver(args);
+    for (var i = 0; i < inputs.getRowsCount(); i++) {
       // The inputs have a plot ID in the first column that isn't used in the timeline.  Skip it.
-      DoubleList timeline = inputs.getRow(i, /* skip= */ 1);
-      List<Changes> result = solver.c2cBottomUp(dates, timeline);
-      Double id = Double.valueOf(i);
-      Csv expectedCsv = expectedById.getOrDefault(id, Csv.empty(expected.headers()));
+      var timeline = inputs.getRow(i, /* skip= */ 1);
+      var result = solver.c2cBottomUp(dates, timeline);
+      var id = Double.valueOf(i);
+      var expectedCsv = expectedById.getOrDefault(id, Csv.empty(expected.headers()));
       if (result != null) {
         verify(i, result, expectedCsv);
       } else {
@@ -124,10 +122,10 @@ public class BottomupTest {
   /** Verify that the changes match the expected values. */
   private void verify(int id, List<Changes> actual, Csv expected) {
     this.lastID = id;
-    List<DoubleList> values = expected.values();
+    var values = expected.values();
     assertEquals(actual.size(), values.getFirst().size());
-    for (int j = 0; j < actual.size(); j++) {
-      Changes c = actual.get(j);
+    for (var j = 0; j < actual.size(); j++) {
+      var c = actual.get(j);
       assertEquals(c.date(), expected.getColumn("year").getDouble(j));
       assertEquals(c.value(), expected.getColumn("value").getDouble(j));
       assertEquals(c.duration(), expected.getColumn("duration").getDouble(j));

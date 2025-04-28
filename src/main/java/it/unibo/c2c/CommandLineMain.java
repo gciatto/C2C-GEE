@@ -12,7 +12,7 @@ public class CommandLineMain {
     var result = new C2cSolver.Args();
     for (var field : result.getClass().getFields()) {
       if (args.containsKey(field.getName())) {
-        Class<?> type = field.getType();
+        var type = field.getType();
         Object value = args.get(field.getName());
         try {
           if (type == int.class) {
@@ -41,7 +41,7 @@ public class CommandLineMain {
   private static Map<String, String> readArgs(String[] args) {
     var result = new HashMap<String, String>();
     result.put("inputFile", null);
-    for (String arg : args) {
+    for (var arg : args) {
       arg = arg.trim();
       if (arg.startsWith("--")) {
         arg = arg.substring(2);
@@ -60,15 +60,15 @@ public class CommandLineMain {
 
   public static void main(String[] args) throws FileNotFoundException {
     var read = readArgs(args);
-    C2cSolver.Args parsed = parseArgs(read);
+    var parsed = parseArgs(read);
     if (!read.containsKey("inputFile")) {
       throw new FileNotFoundException("Missing required input file");
     }
     var inputFile = new File(read.get("inputFile"));
-    Csv input = Csv.vertical(new FileInputStream(inputFile));
-    C2cSolver solver = new C2cSolver(parsed);
+    var input = Csv.vertical(new FileInputStream(inputFile));
+    var solver = new C2cSolver(parsed);
     parsed.log("Running on file %s with args: %s%n", inputFile.getPath(), parsed);
-    Csv result = solver.c2cBottomUp(input);
+    var result = solver.c2cBottomUp(input);
     result.print();
   }
 }

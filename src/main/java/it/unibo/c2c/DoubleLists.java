@@ -51,8 +51,8 @@ public class DoubleLists {
       return -1;
     }
     double min = i.next();
-    int index = 0;
-    int minIndex = 0;
+    var index = 0;
+    var minIndex = 0;
     while (i.hasNext()) {
       double value = i.next();
       index++;

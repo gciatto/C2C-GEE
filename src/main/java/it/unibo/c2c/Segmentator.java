@@ -31,22 +31,22 @@ public class Segmentator {
     List<Segment> segments = new ArrayList<>();
     List<Double> mergeCost = new ArrayList<>();
     // initial segments
-    for (int i = 0; i < values.size() - 1; i++) {
+    for (var i = 0; i < values.size() - 1; i++) {
       segments.add(new Segment(i, i + 1));
     }
     // merging cost of initial segments
-    for (int i = 0; i < segments.size() - 1; i++) {
-      Segment left = segments.get(i);
-      Segment right = segments.get(i + 1);
+    for (var i = 0; i < segments.size() - 1; i++) {
+      var left = segments.get(i);
+      var right = segments.get(i + 1);
       mergeCost.add(calculateError(dates, values, left.start, right.finish));
     }
     // minimum merging cost
-    int index = argMin(mergeCost);
+    var index = argMin(mergeCost);
     double min = mergeCost.get(index);
     while (min < args.maxError || segments.size() > args.maxSegments) {
       // merge the adjacent segments with the smaller cost
-      Segment segment = segments.get(index);
-      Segment segment2 = segments.get(index + 1);
+      var segment = segments.get(index);
+      var segment2 = segments.get(index + 1);
       segments.set(index, segment.copyFinishFrom(segment2));
       // update segments
       segments.remove(index + 1);
@@ -55,23 +55,23 @@ public class Segmentator {
         break;
       }
       if (index + 1 < segments.size()) {
-        Segment left = segments.get(index);
-        Segment right = segments.get(index + 1);
+        var left = segments.get(index);
+        var right = segments.get(index + 1);
         mergeCost.set(index, calculateError(dates, values, left.start, right.finish));
       }
       if (index - 1 >= 0) {
-        Segment left = segments.get(index - 1);
-        Segment right = segments.get(index);
+        var left = segments.get(index - 1);
+        var right = segments.get(index);
         mergeCost.set(index - 1, calculateError(dates, values, left.start, right.finish));
       }
       index = argMin(mergeCost);
       min = mergeCost.get(index);
     }
     List<Changes> segmented = new ArrayList<>();
-    int leftIndex = 999;
-    int rightIndex = 999;
+    var leftIndex = 999;
+    var rightIndex = 999;
     int centralIndex;
-    for (int i = 0; i < segments.size(); i++) {
+    for (var i = 0; i < segments.size(); i++) {
       centralIndex = segments.get(i).start;
       if (i == 0) {
         rightIndex = segments.get(i).finish;
@@ -79,29 +79,29 @@ public class Segmentator {
         leftIndex = segments.get(i - 1).start;
         rightIndex = segments.get(i).finish;
       }
-      Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
+      var c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
       segmented.add(c);
     }
     // add last change
     centralIndex = segments.getLast().finish;
     leftIndex = segments.getLast().start;
-    Changes c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
+    var c = changeMetricsCalculator(dates, values, leftIndex, centralIndex, rightIndex, args);
     segmented.add(c);
     return segmented;
   }
 
   private static double calculateError(DoubleList dates, DoubleList values, int start, int finish) {
     // linearInterpolation
-    double y1 = values.getDouble(start);
-    double y2 = values.getDouble(finish);
-    double x1 = dates.getDouble(start);
-    double x2 = dates.getDouble(finish);
-    double timeWindow = x2 - x1;
+    var y1 = values.getDouble(start);
+    var y2 = values.getDouble(finish);
+    var x1 = dates.getDouble(start);
+    var x2 = dates.getDouble(finish);
+    var timeWindow = x2 - x1;
     double error = 0;
-    for (int i = start; i <= finish; i++) {
-      double xFraction = (dates.getDouble(i) - x1) / timeWindow;
-      double interpolated = lerp(y1, y2, xFraction);
-      double diff = values.getDouble(i) - interpolated;
+    for (var i = start; i <= finish; i++) {
+      var xFraction = (dates.getDouble(i) - x1) / timeWindow;
+      var interpolated = lerp(y1, y2, xFraction);
+      var diff = values.getDouble(i) - interpolated;
       error += diff * diff;
     }
     return Math.sqrt(error / (finish - start));
@@ -114,16 +114,16 @@ public class Segmentator {
       int currIndex,
       int postIndex,
       C2cSolver.Args args) {
-    double currDate = dates.getDouble(currIndex);
-    double currValue = values.getDouble(currIndex);
-    boolean isLast = currIndex == values.size() - 1;
-    boolean isFirst = currIndex == 0;
-    double magnitude = isFirst ? Double.NaN : currValue - values.getDouble(preIndex);
-    double duration = isFirst ? Double.NaN : currDate - dates.getDouble(preIndex);
-    Changes change = Changes.of(currDate, currValue, magnitude, duration);
+    var currDate = dates.getDouble(currIndex);
+    var currValue = values.getDouble(currIndex);
+    var isLast = currIndex == values.size() - 1;
+    var isFirst = currIndex == 0;
+    var magnitude = isFirst ? Double.NaN : currValue - values.getDouble(preIndex);
+    var duration = isFirst ? Double.NaN : currDate - dates.getDouble(preIndex);
+    var change = Changes.of(currDate, currValue, magnitude, duration);
     if (args.postMetrics) {
-      double postMagnitude = isLast ? Double.NaN : values.getDouble(postIndex) - currValue;
-      double postDuration = isLast ? Double.NaN : dates.getDouble(postIndex) - currDate;
+      var postMagnitude = isLast ? Double.NaN : values.getDouble(postIndex) - currValue;
+      var postDuration = isLast ? Double.NaN : dates.getDouble(postIndex) - currDate;
       change = change.withPost(postMagnitude, postDuration);
     }
     if (args.regrowthMetrics) {
@@ -155,8 +155,8 @@ public class Segmentator {
       DoubleList dates, DoubleList values, Changes changes, int currentIndex) {
     try {
       int nextIndex;
-      boolean hasRegrown = false;
-      for (int i = 1; (nextIndex = currentIndex + i) < values.size(); i++) {
+      var hasRegrown = false;
+      for (var i = 1; (nextIndex = currentIndex + i) < values.size(); i++) {
         var nextValue = values.getDouble(nextIndex);
         if (!hasRegrown && percent(changes, nextValue) >= 1.0) {
           hasRegrown = true;
@@ -174,8 +174,8 @@ public class Segmentator {
   }
 
   private static double percent(Changes changes, double value) {
-    double target = Math.abs(changes.magnitude());
-    double current = Math.abs(value - changes.value());
+    var target = Math.abs(changes.magnitude());
+    var current = Math.abs(value - changes.value());
     return current / target;
   }
 
