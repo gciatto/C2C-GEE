@@ -9,6 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Solver for the BottomUp Segmentation algorithm.
@@ -60,6 +61,19 @@ public class C2cSolver {
         @Optional
         public boolean interpolate = false;
 
+        @Doc(help = "Whether to log additional information while processing.")
+        @Optional
+        public boolean logs = false;
+
+        public void log(String format, Object... args) {
+            if (logs) {
+                System.out.print("# ");
+                System.out.printf(format, args);
+                System.out.println();
+                System.out.flush();
+            }
+        }
+
         public Args copy() {
             var args = new Args();
             args.maxError = maxError;
@@ -88,7 +102,8 @@ public class C2cSolver {
                     ", negativeMagnitudeOnly=" + negativeMagnitudeOnly +
                     ", postMetrics=" + postMetrics +
                     ", regrowthMetrics=" + regrowthMetrics +
-                    ", interpolate=" + interpolate;
+                    ", interpolate=" + interpolate +
+                    ", logs=" + logs;
         }
     }
 
@@ -186,6 +201,10 @@ public class C2cSolver {
             DoubleList timeline = inputs.getRow(i);
             double id = timeline.removeFirst();
             List<Changes> changes = c2cBottomUp(years, timeline, args);
+            if (args.interpolate) {
+                args.log("Interpolate line %d, %s", (int) id,
+                        timeline.doubleStream().mapToObj(Double::toString).collect(Collectors.joining(", ")));
+            }
             if (changes != null) {
                 result.addRows(changesToCsv(id, i, changes, headers));
             }

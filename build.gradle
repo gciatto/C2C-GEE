@@ -47,7 +47,7 @@ application {
 def inputFile = file("src/test/resources/it/unibo/c2c/input.csv")
 
 def properties = ['revertBand', 'negativeMagnitudeOnly', 'regrowthMetrics', 'postMetrics', 'infill', 'spikesTolerance',
-                  'interpolate']
+                  'interpolate', 'logs']
 
 tasks.getByName("run") {
     args = properties.collect { "--$it=${project.property(it)}" } + [inputFile]

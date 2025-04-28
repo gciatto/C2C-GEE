@@ -71,7 +71,7 @@ public class CommandLineMain {
         var inputFile = new File(read.get("inputFile"));
         Csv input = Csv.vertical(new FileInputStream(inputFile));
         C2cSolver solver = new C2cSolver(parsed);
-        System.out.printf("# Running on file %s with args: %s%n", inputFile.getPath(), parsed);
+        parsed.log("Running on file %s with args: %s%n", inputFile.getPath(), parsed);
         Csv result = solver.c2cBottomUp(input);
         result.print();
     }
