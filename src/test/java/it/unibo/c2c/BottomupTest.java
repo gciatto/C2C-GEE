@@ -25,8 +25,11 @@ public class BottomupTest {
     private static final String EXPECTED_FILE_REVERT = "output-reverted.csv";
     private static final String EXPECTED_FILE_FILTER = "output-filtered.csv";
     private static final String EXPECTED_FILE_FILTERED_REGROWTH = "output-regrowth-negonly.csv";
+    private static final String EXPECTED_FILE_FILTERED_INTERPOLATED_REGROWTH = "output-regrowth-negonly-interpolate.csv";
+
 
     private static Csv inputs, expectedDefault, expectedRevert, expectedFilter, expectedFilteredRegrowth;
+    private static Csv expectedFilteredInterpolatedRegrowth;
 
     @Rule
     public TestName testName = new TestName();
@@ -42,6 +45,7 @@ public class BottomupTest {
         expectedRevert = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_REVERT));
         expectedFilter = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTER));
         expectedFilteredRegrowth = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTERED_REGROWTH));
+        expectedFilteredInterpolatedRegrowth = Csv.vertical(BottomupTest.class.getResourceAsStream(EXPECTED_FILE_FILTERED_INTERPOLATED_REGROWTH));
     }
 
     @Test
@@ -70,6 +74,16 @@ public class BottomupTest {
         args.regrowthMetrics = true;
         args.postMetrics = false;
         testC2cBottomUpWithArgs(args, expectedFilteredRegrowth);
+    }
+
+    @Test
+    public void testC2cBottomUpWithNegativeMagnitudeOnlyInterpolationAndRegrowMetrics() {
+        var args = new C2cSolver.Args();
+        args.negativeMagnitudeOnly = true;
+        args.regrowthMetrics = true;
+        args.postMetrics = false;
+        args.interpolate = true;
+        testC2cBottomUpWithArgs(args, expectedFilteredInterpolatedRegrowth);
     }
 
     private void testC2cBottomUpWithArgs(C2cSolver.Args args, Csv expected) {
