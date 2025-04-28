@@ -4,19 +4,12 @@
 .settings/
 .classpath
 .project
-bazel-bin/
-bazel-out/
-bazel-testlogs/
-bazel-C2C-GEE/
+bazel-*/
+.idea/
+.gradle/
 bin/
 target/
 *.lock
 *~
 *#
 *.log
-# Ignore Gradle project-specific cache directory
-.gradle
-
-# Ignore Gradle build output directory
-build
-.idea/
