@@ -63,11 +63,9 @@ record RegrowthChangesDecorator(
         try {
             return nextValues.getDouble(years - 1);
         } catch (IndexOutOfBoundsException e) {
-            return 0;
+            return Double.NaN;
         }
     }
-
-    private static final IntList DATES_TO_SAMPLE = IntList.of(4, 5, 6);
 
     @Override
     public double indexRegrowth() {

@@ -163,6 +163,8 @@ public class Segmentator {
         }
     }
 
+    private static final int MIN_SAMPLES = RegrowthChanges.DATES_TO_SAMPLE.intStream().max().getAsInt();
+
     private static Changes extendWithRegrowthMetrics(
             DoubleList dates,
             DoubleList values,
@@ -177,7 +179,7 @@ public class Segmentator {
                 if (!hasRegrown && percent(changes, nextValue) >= 1.0) {
                     hasRegrown = true;
                 }
-                if (i >= 6 && hasRegrown) {
+                if (i >= MIN_SAMPLES && hasRegrown) {
                     nextIndex++;
                     break;
                 }

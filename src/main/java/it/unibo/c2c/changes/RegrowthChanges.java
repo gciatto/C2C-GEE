@@ -1,9 +1,13 @@
 package it.unibo.c2c.changes;
 
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public interface RegrowthChanges extends Changes {
+    IntList DATES_TO_SAMPLE = IntList.of(5);
+
     double indexRegrowth();
 
     default double recoveryIndicator() {
