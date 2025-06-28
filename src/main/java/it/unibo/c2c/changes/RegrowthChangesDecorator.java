@@ -86,10 +86,10 @@ record RegrowthChangesDecorator(Changes changes, DoubleList nextDates, DoubleLis
     if (nextValues.isEmpty()) return Double.NaN;
     try {
       var target = percent / 100.0;
-      var threshold = (value() - magnitude()) * target;
       for (var i = 0; i < nextValues.size(); i++) {
         var nextValue = nextValues.getDouble(i);
-        if (nextValue >= threshold) {
+        var regrowth = Math.abs(nextValue - changes.value()) / Math.abs(changes.magnitude());
+        if (regrowth >= target) {
           return nextDates.getDouble(i) - date();
         }
       }
